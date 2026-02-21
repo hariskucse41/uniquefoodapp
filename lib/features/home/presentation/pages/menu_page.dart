@@ -111,40 +111,39 @@ class _MenuPageState extends State<MenuPage>
               // Category tabs
               if (_tabController != null)
                 Container(
-                  height: 50.h,
-                  margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                  height: 48.h,
+                  margin: EdgeInsets.symmetric(vertical: 8.h),
+                  width: double.infinity,
                   child: TabBar(
                     controller: _tabController,
                     isScrollable: true,
                     labelColor: Colors.white,
-                    unselectedLabelColor: AppColors.textMuted,
+                    unselectedLabelColor: AppColors.textSecondary,
                     labelStyle: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13.sp,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
+                    unselectedLabelStyle: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
+                    indicatorPadding: EdgeInsets.symmetric(horizontal: 4.w),
                     dividerColor: Colors.transparent,
                     indicator: BoxDecoration(
                       gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(25.r),
+                      borderRadius: BorderRadius.circular(24.r),
                     ),
                     tabAlignment: TabAlignment.start,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 12.h,
-                    ),
-                    labelPadding: EdgeInsets.symmetric(
-                      horizontal: 4.w,
-                      vertical: 4.h,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    labelPadding: EdgeInsets.zero,
                     tabs: _categories.map((cat) {
-                      return Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 18.w,
-                          vertical: 8.h,
+                      return Tab(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
+                          alignment: Alignment.center,
+                          child: Text(cat.name.isNotEmpty ? cat.name : 'All'),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(cat.name),
                       );
                     }).toList(),
                   ),
