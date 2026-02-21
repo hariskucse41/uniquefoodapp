@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -26,49 +27,49 @@ class AppDrawer extends StatelessWidget {
           // Drawer header with user info
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
+            padding: EdgeInsets.fromLTRB(10.w, 30.h, 10.w, 12.h),
             decoration: const BoxDecoration(gradient: AppColors.heroGradient),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Avatar
                 Container(
-                  padding: const EdgeInsets.all(3),
+                  padding: EdgeInsets.all(3.w),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: Colors.white.withValues(alpha: .5),
-                      width: 2,
+                      width: 2.w,
                     ),
                   ),
-                  child: const CircleAvatar(
-                    radius: 32,
+                  child: CircleAvatar(
+                    radius: 32.r,
                     backgroundColor: Colors.white24,
-                    child: Icon(Icons.person, size: 32, color: Colors.white),
+                    child: Icon(Icons.person, size: 32.sp, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 14),
-                const Text(
+                SizedBox(height: 14.h),
+                Text(
                   'Food Lover',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   userEmail,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: .7),
-                    fontSize: 13,
+                    fontSize: 13.sp,
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
 
           // Navigation items
           _buildDrawerItem(Icons.home_rounded, 'Home', () => onNavigate(0)),
@@ -91,30 +92,34 @@ class AppDrawer extends StatelessWidget {
 
           // Logout
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
             child: GestureDetector(
               onTap: onLogout,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE94560).withValues(alpha: .1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
                     color: const Color(0xFFE94560).withValues(alpha: .2),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.logout, color: Color(0xFFE94560), size: 20),
-                    SizedBox(width: 8),
+                    Icon(
+                      Icons.logout,
+                      color: const Color(0xFFE94560),
+                      size: 20.sp,
+                    ),
+                    SizedBox(width: 8.w),
                     Text(
                       'Log Out',
                       style: TextStyle(
-                        color: Color(0xFFE94560),
+                        color: const Color(0xFFE94560),
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 14.sp,
                       ),
                     ),
                   ],
@@ -122,7 +127,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 10.h),
         ],
       ),
     );
@@ -130,19 +135,19 @@ class AppDrawer extends StatelessWidget {
 
   Widget _buildDrawerItem(IconData icon, String label, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.textSecondary, size: 22),
+      leading: Icon(icon, color: AppColors.textSecondary, size: 22.sp),
       title: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 15,
+          fontSize: 12.sp,
           fontWeight: FontWeight.w500,
         ),
       ),
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
       dense: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
       hoverColor: AppColors.primaryStart.withValues(alpha: .1),
     );
   }

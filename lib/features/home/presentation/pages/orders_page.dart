@@ -1,77 +1,125 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/models/extra_models.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_state.dart';
 
 class OrdersPage extends StatelessWidget {
   const OrdersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Column(
-        children: [
-          // Status tabs
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceOverlay,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: TabBar(
-              labelColor: Colors.white,
-              unselectedLabelColor: AppColors.textMuted,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              indicator: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              tabs: const [
-                Tab(text: 'Active'),
-                Tab(text: 'Completed'),
-                Tab(text: 'Cancelled'),
-              ],
-            ),
-          ),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state is HomeLoading || state is HomeInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          // Order list
-          Expanded(
-            child: TabBarView(
+        if (state is HomeError) {
+          return Center(child: Text('Error: ${state.message}'));
+        }
+
+        if (state is HomeLoaded) {
+          final activeOrders = state.activeOrders
+              .map((json) => OrderModel.fromJson(json))
+              .toList();
+          final completedOrders = state.completedOrders
+              .map((json) => OrderModel.fromJson(json))
+              .toList();
+
+          return DefaultTabController(
+            length: 3,
+            child: Column(
               children: [
-                _buildOrdersList(_activeOrders),
-                _buildOrdersList(_completedOrders),
-                _buildEmptyOrders('No cancelled orders'),
+                // Status tabs
+                Container(
+                  margin: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                  height: 44.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceOverlay,
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  child: TabBar(
+                    labelColor: Colors.white,
+                    unselectedLabelColor: AppColors.textMuted,
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.sp,
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                    tabs: const [
+                      Tab(text: 'Active'),
+                      Tab(text: 'Completed'),
+                      Tab(text: 'Cancelled'),
+                    ],
+                  ),
+                ),
+
+                // Order list
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildOrdersList(activeOrders),
+                      _buildOrdersList(completedOrders),
+                      _buildEmptyOrders('No cancelled orders'),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 
-  Widget _buildOrdersList(List<_OrderItem> orders) {
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case 'preparing':
+        return const Color(0xFFFFB347);
+      case 'outfordelivery':
+      case 'on the way':
+        return const Color(0xFF667EEA);
+      case 'delivered':
+      case 'completed':
+        return const Color(0xFF00C853);
+      case 'cancelled':
+        return const Color(0xFFE94560);
+      default:
+        return AppColors.textMuted;
+    }
+  }
+
+  Widget _buildOrdersList(List<OrderModel> orders) {
     if (orders.isEmpty) {
       return _buildEmptyOrders('No orders yet');
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.w),
       physics: const BouncingScrollPhysics(),
       itemCount: orders.length,
       itemBuilder: (context, index) {
         final order = orders[index];
+        final statusColor = _getStatusColor(order.status);
+
         return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.only(bottom: 14.h),
+          padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             color: AppColors.surfaceOverlay,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: Colors.white.withValues(alpha: .05)),
           ),
           child: Column(
@@ -82,80 +130,84 @@ class OrdersPage extends StatelessWidget {
                 children: [
                   Text(
                     'Order #${order.id}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 15.sp,
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
-                      color: order.statusColor.withValues(alpha: .15),
-                      borderRadius: BorderRadius.circular(8),
+                      color: statusColor.withValues(alpha: .15),
+                      borderRadius: BorderRadius.circular(8.r),
                       border: Border.all(
-                        color: order.statusColor.withValues(alpha: .3),
+                        color: statusColor.withValues(alpha: .3),
                       ),
                     ),
                     child: Text(
                       order.status,
                       style: TextStyle(
-                        color: order.statusColor,
-                        fontSize: 11,
+                        color: statusColor,
+                        fontSize: 11.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               ...order.items.map(
                 (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: EdgeInsets.only(bottom: 6.h),
                   child: Row(
                     children: [
                       Container(
-                        width: 6,
-                        height: 6,
+                        width: 6.w,
+                        height: 6.h,
                         decoration: BoxDecoration(
                           color: AppColors.primaryStart,
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(3.r),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        item,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Text(
+                          '${item.quantity}x ${item.productName}',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13.sp,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               Divider(color: Colors.white.withValues(alpha: .05)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    order.date,
-                    style: const TextStyle(
+                    order.orderDate,
+                    style: TextStyle(
                       color: AppColors.textMuted,
-                      fontSize: 12,
+                      fontSize: 12.sp,
                     ),
                   ),
                   Text(
-                    order.total,
-                    style: const TextStyle(
+                    '\$${order.totalAmount.toStringAsFixed(2)}',
+                    style: TextStyle(
                       color: AppColors.primaryStart,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                     ),
                   ),
                 ],
@@ -174,72 +226,16 @@ class OrdersPage extends StatelessWidget {
         children: [
           Icon(
             Icons.receipt_long,
-            size: 60,
+            size: 60.sp,
             color: AppColors.textMuted.withValues(alpha: .5),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14.h),
           Text(
             message,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 16),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 16.sp),
           ),
         ],
       ),
     );
   }
-
-  static final _activeOrders = [
-    _OrderItem(
-      id: '1024',
-      status: 'Preparing',
-      statusColor: const Color(0xFFFFB347),
-      items: ['1x Margherita Pizza', '2x Matcha Latte', '1x Tiramisu'],
-      total: '\$38.96',
-      date: 'Today, 10:30 AM',
-    ),
-    _OrderItem(
-      id: '1023',
-      status: 'On the way',
-      statusColor: const Color(0xFF667EEA),
-      items: ['2x Chicken Burger', '1x Pad Thai'],
-      total: '\$32.47',
-      date: 'Today, 9:15 AM',
-    ),
-  ];
-
-  static final _completedOrders = [
-    _OrderItem(
-      id: '1022',
-      status: 'Delivered',
-      statusColor: const Color(0xFF00C853),
-      items: ['1x Sushi Platter', '1x Caesar Salad'],
-      total: '\$28.48',
-      date: 'Yesterday, 7:45 PM',
-    ),
-    _OrderItem(
-      id: '1021',
-      status: 'Delivered',
-      statusColor: const Color(0xFF00C853),
-      items: ['1x Family Combo'],
-      total: '\$29.99',
-      date: 'Feb 18, 12:30 PM',
-    ),
-  ];
-}
-
-class _OrderItem {
-  final String id;
-  final String status;
-  final Color statusColor;
-  final List<String> items;
-  final String total;
-  final String date;
-
-  _OrderItem({
-    required this.id,
-    required this.status,
-    required this.statusColor,
-    required this.items,
-    required this.total,
-    required this.date,
-  });
 }

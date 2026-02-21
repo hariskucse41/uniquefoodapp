@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/auth_bloc.dart';
@@ -61,7 +62,7 @@ class _RegisterPageState extends State<RegisterPage>
               backgroundColor: const Color(0xFF00C853),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10.r),
               ),
             ),
           );
@@ -74,7 +75,7 @@ class _RegisterPageState extends State<RegisterPage>
               backgroundColor: const Color(0xFFE94560),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10.r),
               ),
             ),
           );
@@ -99,15 +100,18 @@ class _RegisterPageState extends State<RegisterPage>
                   child: SlideTransition(
                     position: _slideAnim,
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(32),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 24.w,
+                        vertical: 24.h,
+                      ),
+                      padding: EdgeInsets.all(32.w),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: .95),
-                        borderRadius: BorderRadius.circular(24),
+                        color: Colors.white.withOpacity(.95),
+                        borderRadius: BorderRadius.circular(24.r),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: .2),
-                            blurRadius: 30,
+                            blurRadius: 30.r,
                             offset: const Offset(0, 10),
                           ),
                         ],
@@ -116,67 +120,67 @@ class _RegisterPageState extends State<RegisterPage>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: EdgeInsets.all(16.w),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xff764ba2), Color(0xff667eea)],
                               ),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
                                   color: const Color(
                                     0xff764ba2,
                                   ).withValues(alpha: .4),
-                                  blurRadius: 15,
+                                  blurRadius: 15.r,
                                   offset: const Offset(0, 5),
                                 ),
                               ],
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.person_add,
-                              size: 40,
+                              size: 40.sp,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          const Text(
+                          SizedBox(height: 20.h),
+                          Text(
                             "Create Account",
                             style: TextStyle(
-                              fontSize: 28,
+                              fontSize: 28.sp,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A1A2E),
+                              color: const Color(0xFF1A1A2E),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6.h),
                           Text(
                             "Sign up to get started",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               color: Colors.grey[500],
                             ),
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: 32.h),
                           _inputField(
                             "Full Name",
                             nameController,
                             false,
                             Icons.person_outline,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           _inputField(
                             "Email",
                             emailController,
                             false,
                             Icons.email_outlined,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           _inputField(
                             "Password",
                             passwordController,
                             true,
                             Icons.lock_outline,
                           ),
-                          const SizedBox(height: 28),
+                          SizedBox(height: 28.h),
                           _primaryButton(
                             "Sign Up",
                             isLoading
@@ -192,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage>
                                   },
                             isLoading,
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -200,7 +204,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 "Already have an account? ",
                                 style: TextStyle(
                                   color: Colors.grey[600],
-                                  fontSize: 14,
+                                  fontSize: 14.sp,
                                 ),
                               ),
                               GestureDetector(
@@ -209,12 +213,12 @@ class _RegisterPageState extends State<RegisterPage>
                                     : () {
                                         Navigator.pop(context);
                                       },
-                                child: const Text(
+                                child: Text(
                                   "Sign In",
                                   style: TextStyle(
-                                    color: Color(0xff764ba2),
+                                    color: const Color(0xff764ba2),
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                    fontSize: 14.sp,
                                   ),
                                 ),
                               ),
@@ -246,24 +250,21 @@ class _RegisterPageState extends State<RegisterPage>
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(icon, color: const Color(0xff764ba2), size: 20),
+        prefixIcon: Icon(icon, color: const Color(0xff764ba2), size: 20.sp),
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide(color: Colors.grey[200]!),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide(color: Colors.grey[200]!),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xff764ba2), width: 2),
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide:  BorderSide(color: Color(0xff764ba2), width: 2.w),
         ),
       ),
     );
@@ -272,17 +273,17 @@ class _RegisterPageState extends State<RegisterPage>
   Widget _primaryButton(String text, VoidCallback? onPressed, bool isLoading) {
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 52.h,
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xff764ba2), Color(0xff667eea)],
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14.r),
           boxShadow: [
             BoxShadow(
               color: const Color(0xff764ba2).withValues(alpha: .4),
-              blurRadius: 12,
+              blurRadius: 12.r,
               offset: const Offset(0, 4),
             ),
           ],
@@ -292,23 +293,23 @@ class _RegisterPageState extends State<RegisterPage>
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
             ),
           ),
           onPressed: onPressed,
           child: isLoading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
+              ? SizedBox(
+                  height: 22.h,
+                  width: 22.w,
+                  child: const CircularProgressIndicator(
                     strokeWidth: 2.5,
                     color: Colors.white,
                   ),
                 )
               : Text(
                   text,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),

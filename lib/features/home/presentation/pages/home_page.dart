@@ -1,60 +1,136 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/models/home_models.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_state.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Hero Banner
-          _buildHeroBanner(context),
-          const SizedBox(height: 24),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state is HomeLoading || state is HomeInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          // Food Categories
-          _buildSectionTitle('Categories'),
-          const SizedBox(height: 12),
-          _buildCategories(),
-          const SizedBox(height: 28),
+        if (state is HomeError) {
+          return Center(child: Text('Error: ${state.message}'));
+        }
 
-          // Special Offers
-          _buildSectionTitle('Special Offers'),
-          const SizedBox(height: 12),
-          _buildSpecialOffers(),
-          const SizedBox(height: 28),
+        if (state is HomeLoaded) {
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Hero Banner
+                if (state.heroBanners.isNotEmpty)
+                  _buildHeroBanner(context, state.heroBanners.first),
+                SizedBox(height: 24.h),
 
-          // Popular Dishes
-          _buildSectionTitle('Popular Dishes'),
-          const SizedBox(height: 12),
-          _buildPopularDishes(),
-          const SizedBox(height: 28),
+                // Food Categories
+                if (state.categories.isNotEmpty) ...[
+                  _buildSectionTitle('Categories'),
+                  SizedBox(height: 12.h),
+                  _buildCategories(state.categories),
+                  SizedBox(height: 28.h),
+                ],
 
-          // Recommended
-          _buildSectionTitle('Recommended For You'),
-          const SizedBox(height: 12),
-          _buildRecommended(),
-          const SizedBox(height: 40),
-        ],
-      ),
+                // Special Offers
+                if (state.specialOffers.isNotEmpty) ...[
+                  _buildSectionTitle('Special Offers'),
+                  SizedBox(height: 12.h),
+                  _buildSpecialOffers(state.specialOffers),
+                  SizedBox(height: 28.h),
+                ],
+
+                // Popular Dishes
+                if (state.popularDishes.isNotEmpty) ...[
+                  _buildSectionTitle('Popular Dishes'),
+                  SizedBox(height: 12.h),
+                  _buildPopularDishes(state.popularDishes),
+                  SizedBox(height: 28.h),
+                ],
+
+                // Recommended
+                if (state.recommendedDishes.isNotEmpty) ...[
+                  _buildSectionTitle('Recommended For You'),
+                  SizedBox(height: 12.h),
+                  _buildRecommended(state.recommendedDishes),
+                  SizedBox(height: 40.h),
+                ],
+              ],
+            ),
+          );
+        }
+
+        return SizedBox.shrink();
+      },
     );
   }
 
-  Widget _buildHeroBanner(BuildContext context) {
+  Color _parseColor(String? colorStr, Color defaultColor) {
+    if (colorStr == null || colorStr.isEmpty) return defaultColor;
+    try {
+      String hex = colorStr.replaceAll('#', '');
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+      return Color(int.parse(hex, radix: 16));
+    } catch (_) {
+      return defaultColor;
+    }
+  }
+
+  IconData _getIcon(String? iconName) {
+    switch (iconName) {
+      case 'local_pizza':
+        return Icons.local_pizza;
+      case 'ramen_dining':
+        return Icons.ramen_dining;
+      case 'bakery_dining':
+        return Icons.bakery_dining;
+      case 'local_cafe':
+        return Icons.local_cafe;
+      case 'icecream':
+        return Icons.icecream;
+      case 'lunch_dining':
+        return Icons.lunch_dining;
+      case 'family_restroom':
+        return Icons.family_restroom;
+      case 'brunch_dining':
+        return Icons.brunch_dining;
+      case 'local_bar':
+        return Icons.local_bar;
+      case 'cake':
+        return Icons.cake;
+      case 'eco':
+        return Icons.eco;
+      case 'set_meal':
+        return Icons.set_meal;
+      default:
+        return Icons.fastfood;
+    }
+  }
+
+  Widget _buildHeroBanner(BuildContext context, PromotionModel hero) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      height: 180,
+      margin: EdgeInsets.all(16.w),
+      height: 220.h,
+      width: double.infinity,
       decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
-        borderRadius: BorderRadius.circular(20),
+        color: _parseColor(hero.backgroundColor, const Color(0xff667eea)),
+        gradient: hero.backgroundColor == null ? AppColors.heroGradient : null,
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryStart.withValues(alpha: .3),
-            blurRadius: 20,
+            blurRadius: 20.r,
             offset: const Offset(0, 8),
           ),
         ],
@@ -66,8 +142,8 @@ class HomePage extends StatelessWidget {
             right: -30,
             top: -30,
             child: Container(
-              width: 120,
-              height: 120,
+              width: 120.w,
+              height: 120.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withValues(alpha: .1),
@@ -78,59 +154,70 @@ class HomePage extends StatelessWidget {
             right: 20,
             bottom: -20,
             child: Container(
-              width: 80,
-              height: 80,
+              width: 80.w,
+              height: 80.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withValues(alpha: .08),
               ),
             ),
           ),
+          // Background Image (if any)
+          if (hero.imageUrl != null && hero.imageUrl!.isNotEmpty)
+            Positioned(
+              right: 16,
+              bottom: 16,
+              top: 16,
+              width: 140.w,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.r),
+                child: Image.network(
+                  hero.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      SizedBox.shrink(),
+                ),
+              ),
+            ),
           // Content
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  '🔥 Today\'s Special',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Get 30% Off',
+                Text(
+                  hero.title,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28,
+                    fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const Text(
-                  'On your first order!',
-                  style: TextStyle(color: Colors.white70, fontSize: 15),
+                Text(
+                  hero.subtitle,
+                  style: TextStyle(color: Colors.white70, fontSize: 15.sp),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14.h),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 10.h,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(25.r),
                   ),
-                  child: const Text(
-                    'Order Now',
+                  child: Text(
+                    hero.actionText ?? 'Order Now',
                     style: TextStyle(
-                      color: Color(0xff667eea),
+                      color: _parseColor(
+                        hero.backgroundColor,
+                        const Color(0xff667eea),
+                      ),
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 13.sp,
                     ),
                   ),
                 ),
@@ -144,22 +231,22 @@ class HomePage extends StatelessWidget {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: 20.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          const Text(
+          Text(
             'See All',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w500,
               color: AppColors.primaryStart,
             ),
@@ -169,52 +256,52 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildCategories() {
-    final categories = [
-      _CategoryItem(Icons.local_pizza, 'Pizza', const Color(0xFFFF6B35)),
-      _CategoryItem(Icons.ramen_dining, 'Asian', const Color(0xFF667EEA)),
-      _CategoryItem(Icons.bakery_dining, 'Bakery', const Color(0xFFE94560)),
-      _CategoryItem(Icons.local_cafe, 'Drinks', const Color(0xFF00C853)),
-      _CategoryItem(Icons.icecream, 'Desserts', const Color(0xFFFFB347)),
-      _CategoryItem(Icons.lunch_dining, 'Burgers', const Color(0xFF764BA2)),
-    ];
-
+  Widget _buildCategories(List<CategoryModel> categories) {
     return SizedBox(
-      height: 100,
+      height: 140.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final cat = categories[index];
+          final catColor = _parseColor(cat.color, AppColors.primaryStart);
           return Container(
-            width: 80,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: 80.w,
+            margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
             child: Column(
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 60.w,
+                  height: 60.h,
                   decoration: BoxDecoration(
-                    color: cat.color.withValues(alpha: .15),
-                    borderRadius: BorderRadius.circular(18),
+                    color: catColor.withValues(alpha: .15),
+                    borderRadius: BorderRadius.circular(18.r),
                     border: Border.all(
-                      color: cat.color.withValues(alpha: .3),
-                      width: 1.5,
+                      color: catColor.withValues(alpha: .3),
+                      width: 1.5.w,
                     ),
                   ),
-                  child: Icon(cat.icon, color: cat.color, size: 28),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  cat.label,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                  child: Icon(
+                    _getIcon(cat.iconName),
+                    color: catColor,
+                    size: 28.sp,
                   ),
-                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 8.h),
+                Expanded(
+                  child: Text(
+                    cat.name,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -224,68 +311,49 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecialOffers() {
-    final offers = [
-      _OfferItem(
-        'Family Combo',
-        'Up to 4 people',
-        '\$29.99',
-        const Color(0xFFE94560),
-        Icons.family_restroom,
-      ),
-      _OfferItem(
-        'Weekend Brunch',
-        'Sat & Sun only',
-        '\$15.99',
-        const Color(0xFF667EEA),
-        Icons.brunch_dining,
-      ),
-      _OfferItem(
-        'Happy Hour',
-        '5PM - 7PM Daily',
-        '\$8.99',
-        const Color(0xFFFF6B35),
-        Icons.local_bar,
-      ),
-    ];
-
+  Widget _buildSpecialOffers(List<PromotionModel> offers) {
     return SizedBox(
-      height: 130,
+      height: 180.h,
+      width: double.infinity,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
         itemCount: offers.length,
         itemBuilder: (context, index) {
           final offer = offers[index];
+          final oColor = _parseColor(
+            offer.color ?? offer.backgroundColor,
+            AppColors.primaryStart,
+          );
           return Container(
-            width: 240,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.all(16),
+            width: 240.w,
+            margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  offer.color.withValues(alpha: .2),
-                  offer.color.withValues(alpha: .05),
+                  oColor.withValues(alpha: .2),
+                  oColor.withValues(alpha: .05),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: offer.color.withValues(alpha: .2)),
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: oColor.withValues(alpha: .2)),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 50.w,
+                  height: 50.h,
                   decoration: BoxDecoration(
-                    color: offer.color.withValues(alpha: .2),
-                    borderRadius: BorderRadius.circular(14),
+                    color: oColor.withValues(alpha: .2),
+                    borderRadius: BorderRadius.circular(14.r),
                   ),
-                  child: Icon(offer.icon, color: offer.color, size: 26),
+                  child: Icon(Icons.star, color: oColor, size: 26.sp),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: 14.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,29 +361,34 @@ class HomePage extends StatelessWidget {
                     children: [
                       Text(
                         offer.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 15,
+                          fontSize: 15.sp,
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         offer.subtitle,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        offer.price,
                         style: TextStyle(
-                          color: offer.color,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          color: AppColors.textMuted,
+                          fontSize: 12.sp,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      SizedBox(height: 6.h),
+                      if (offer.price != null)
+                        Text(
+                          '${offer.currency ?? '\$'}${offer.price}',
+                          style: TextStyle(
+                            color: oColor,
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -327,120 +400,116 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildPopularDishes() {
-    final dishes = [
-      _DishItem(
-        'Margherita Pizza',
-        'Classic Italian',
-        '\$12.99',
-        '⭐ 4.8',
-        Icons.local_pizza,
-        const Color(0xFFFF6B35),
-      ),
-      _DishItem(
-        'Pad Thai',
-        'Spicy Noodles',
-        '\$10.49',
-        '⭐ 4.7',
-        Icons.ramen_dining,
-        const Color(0xFF667EEA),
-      ),
-      _DishItem(
-        'Tiramisu',
-        'Italian Dessert',
-        '\$8.99',
-        '⭐ 4.9',
-        Icons.cake,
-        const Color(0xFFE94560),
-      ),
-      _DishItem(
-        'Caesar Salad',
-        'Fresh & Healthy',
-        '\$9.49',
-        '⭐ 4.6',
-        Icons.eco,
-        const Color(0xFF00C853),
-      ),
-    ];
-
+  Widget _buildPopularDishes(List<ProductModel> dishes) {
     return SizedBox(
-      height: 220,
+      height: 290.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
         itemCount: dishes.length,
         itemBuilder: (context, index) {
           final dish = dishes[index];
+          // Use AppColors.primaryStart as default dish color since color is not in ProductModel
+          final dColor = AppColors.primaryStart;
           return Container(
-            width: 170,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: 170.w,
+            margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
             decoration: BoxDecoration(
               color: AppColors.surfaceOverlay,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(18.r),
               border: Border.all(color: Colors.white.withValues(alpha: .05)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Food image placeholder with icon
+                // Food image
                 Container(
-                  height: 110,
+                  height: 110.h,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        dish.color.withValues(alpha: .3),
-                        dish.color.withValues(alpha: .1),
+                        dColor.withValues(alpha: .3),
+                        dColor.withValues(alpha: .1),
                       ],
                     ),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(18),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(18.r),
                     ),
                   ),
-                  child: Center(
-                    child: Icon(dish.icon, size: 50, color: dish.color),
-                  ),
+                  child: dish.imageUrl != null && dish.imageUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(18.r),
+                          ),
+                          child: Image.network(
+                            dish.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Center(
+                                  child: Icon(
+                                    Icons.fastfood,
+                                    size: 50.sp,
+                                    color: dColor,
+                                  ),
+                                ),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 50.sp,
+                            color: dColor,
+                          ),
+                        ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         dish.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2.h),
                       Text(
                         dish.description,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textMuted,
-                          fontSize: 11,
+                          fontSize: 11.sp,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            dish.price,
-                            style: TextStyle(
-                              color: dish.color,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: Text(
+                              '\$${dish.price.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: dColor,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          SizedBox(width: 4.w),
                           Text(
-                            dish.rating,
-                            style: const TextStyle(
+                            '⭐ ${dish.rating}',
+                            style: TextStyle(
                               color: AppColors.accentGold,
-                              fontSize: 12,
+                              fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -457,103 +526,89 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommended() {
-    final items = [
-      _DishItem(
-        'Beef Burger',
-        'Juicy & Tender',
-        '\$11.49',
-        '⭐ 4.7',
-        Icons.lunch_dining,
-        const Color(0xFF764BA2),
-      ),
-      _DishItem(
-        'Matcha Latte',
-        'Creamy Green Tea',
-        '\$5.99',
-        '⭐ 4.5',
-        Icons.local_cafe,
-        const Color(0xFF00C853),
-      ),
-      _DishItem(
-        'Sushi Platter',
-        '12 Pieces',
-        '\$18.99',
-        '⭐ 4.9',
-        Icons.set_meal,
-        const Color(0xFFE94560),
-      ),
-    ];
-
+  Widget _buildRecommended(List<ProductModel> items) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
+        final iColor = AppColors.primaryEnd;
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(14),
+          margin: EdgeInsets.only(bottom: 12.h),
+          padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
             color: AppColors.surfaceOverlay,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: Colors.white.withValues(alpha: .05)),
           ),
           child: Row(
             children: [
               Container(
-                width: 70,
-                height: 70,
+                width: 70.w,
+                height: 70.h,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      item.color.withValues(alpha: .3),
-                      item.color.withValues(alpha: .1),
+                      iColor.withValues(alpha: .3),
+                      iColor.withValues(alpha: .1),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14.r),
                 ),
-                child: Icon(item.icon, size: 34, color: item.color),
+                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(14.r),
+                        child: Image.network(
+                          item.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Icon(Icons.fastfood, size: 34.sp, color: iColor),
+                        ),
+                      )
+                    : Icon(Icons.fastfood, size: 34.sp, color: iColor),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 15,
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       item.description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textMuted,
-                        fontSize: 12,
+                        fontSize: 12.sp,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     Row(
                       children: [
                         Text(
-                          item.price,
+                          '\$${item.price.toStringAsFixed(2)}',
                           style: TextStyle(
-                            color: item.color,
-                            fontSize: 16,
+                            color: iColor,
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const Spacer(),
                         Text(
-                          item.rating,
-                          style: const TextStyle(
+                          '⭐ ${item.rating}',
+                          style: TextStyle(
                             color: AppColors.accentGold,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ],
@@ -561,15 +616,15 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Container(
-                width: 36,
-                height: 36,
+                width: 36.w,
+                height: 36.h,
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: const Icon(Icons.add, color: Colors.white, size: 20),
+                child: Icon(Icons.add, color: Colors.white, size: 20.sp),
               ),
             ],
           ),
@@ -577,40 +632,4 @@ class HomePage extends StatelessWidget {
       },
     );
   }
-}
-
-class _CategoryItem {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  _CategoryItem(this.icon, this.label, this.color);
-}
-
-class _OfferItem {
-  final String title;
-  final String subtitle;
-  final String price;
-  final Color color;
-  final IconData icon;
-
-  _OfferItem(this.title, this.subtitle, this.price, this.color, this.icon);
-}
-
-class _DishItem {
-  final String name;
-  final String description;
-  final String price;
-  final String rating;
-  final IconData icon;
-  final Color color;
-
-  _DishItem(
-    this.name,
-    this.description,
-    this.price,
-    this.rating,
-    this.icon,
-    this.color,
-  );
 }

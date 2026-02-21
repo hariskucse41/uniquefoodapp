@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -66,8 +67,8 @@ class _HomeShellState extends State<HomeShell> {
                     right: 0,
                     top: 0,
                     child: Container(
-                      width: 8,
-                      height: 8,
+                      width: 8.w,
+                      height: 8.h,
                       decoration: const BoxDecoration(
                         color: AppColors.accent,
                         shape: BoxShape.circle,
@@ -97,14 +98,14 @@ class _HomeShellState extends State<HomeShell> {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: .3),
-              blurRadius: 20,
+              blurRadius: 20.r,
               offset: const Offset(0, -5),
             ),
           ],
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -129,32 +130,29 @@ class _HomeShellState extends State<HomeShell> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 20 : 12,
-          vertical: 10,
-        ),
+        padding: EdgeInsets.symmetric(vertical: 10.h),
         decoration: BoxDecoration(
           color: isActive
               ? AppColors.primaryStart.withValues(alpha: .15)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 24,
+              size: 24.sp,
               color: isActive ? AppColors.primaryStart : AppColors.textMuted,
             ),
             if (isActive) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.primaryStart,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: 13.sp,
                 ),
               ),
             ],

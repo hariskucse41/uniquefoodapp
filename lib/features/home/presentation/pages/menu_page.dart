@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/models/home_models.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_state.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -11,194 +16,249 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> _tabs = [
-    'All',
-    'Pizza',
-    'Burgers',
-    'Asian',
-    'Desserts',
-    'Drinks',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
-  }
+  TabController? _tabController;
+  List<CategoryModel> _categories = [];
+  bool _initialized = false;
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
+  }
+
+  void _initTabs(List<CategoryModel> categories) {
+    if (_initialized) return;
+    _categories = [
+      CategoryModel(id: 0, name: 'All', iconName: '', color: ''),
+      ...categories,
+    ];
+    _tabController = TabController(length: _categories.length, vsync: this);
+    _initialized = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Search bar
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceOverlay,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: .05)),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 14),
-                Icon(Icons.search, color: AppColors.textMuted, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                    ),
-                    decoration: const InputDecoration(
-                      hintText: 'Search dishes...',
-                      hintStyle: TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 14,
-                      ),
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(6),
-                  padding: const EdgeInsets.all(8),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state is HomeLoading || state is HomeInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state is HomeError) {
+          return Center(child: Text('Error: ${state.message}'));
+        }
+
+        if (state is HomeLoaded) {
+          _initTabs(state.categories);
+
+          return Column(
+            children: [
+              // Search bar
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                child: Container(
+                  height: 50.h,
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.surfaceOverlay,
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: .05),
+                    ),
                   ),
-                  child: const Icon(Icons.tune, color: Colors.white, size: 18),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 14.w),
+                      Icon(
+                        Icons.search,
+                        color: AppColors.textMuted,
+                        size: 22.sp,
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: TextField(
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14.sp,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Search dishes...',
+                            hintStyle: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 14.sp,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.all(6.w),
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        child: Icon(
+                          Icons.tune,
+                          color: Colors.white,
+                          size: 18.sp,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-        ),
+              ),
 
-        // Category tabs
-        Container(
-          height: 42,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            labelColor: Colors.white,
-            unselectedLabelColor: AppColors.textMuted,
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            dividerColor: Colors.transparent,
-            indicator: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            tabAlignment: TabAlignment.start,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-            tabs: _tabs.map((tab) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                alignment: Alignment.center,
-                child: Text(tab),
-              );
-            }).toList(),
-          ),
-        ),
+              // Category tabs
+              if (_tabController != null)
+                Container(
+                  height: 50.h,
+                  margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                  child: TabBar(
+                    controller: _tabController,
+                    isScrollable: true,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: AppColors.textMuted,
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.sp,
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(25.r),
+                    ),
+                    tabAlignment: TabAlignment.start,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 12.h,
+                    ),
+                    labelPadding: EdgeInsets.symmetric(
+                      horizontal: 4.w,
+                      vertical: 4.h,
+                    ),
+                    tabs: _categories.map((cat) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 18.w,
+                          vertical: 8.h,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(cat.name),
+                      );
+                    }).toList(),
+                  ),
+                ),
 
-        // Menu items grid
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: _tabs.map((_) => _buildMenuGrid()).toList(),
-          ),
-        ),
-      ],
+              // Menu items grid
+              if (_tabController != null)
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: _categories.map((cat) {
+                      final filteredProducts = cat.id == 0
+                          ? state.products
+                          : state.products
+                                .where((p) => p.categoryId == cat.id)
+                                .toList();
+                      return _buildMenuGrid(filteredProducts);
+                    }).toList(),
+                  ),
+                ),
+            ],
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 
-  Widget _buildMenuGrid() {
-    final items = [
-      _MenuItem(
-        'Margherita Pizza',
-        '\$12.99',
-        '⭐ 4.8',
-        Icons.local_pizza,
-        const Color(0xFFFF6B35),
-        '25 min',
-      ),
-      _MenuItem(
-        'Chicken Burger',
-        '\$10.99',
-        '⭐ 4.6',
-        Icons.lunch_dining,
-        const Color(0xFF764BA2),
-        '15 min',
-      ),
-      _MenuItem(
-        'Pad Thai',
-        '\$10.49',
-        '⭐ 4.7',
-        Icons.ramen_dining,
-        const Color(0xFF667EEA),
-        '20 min',
-      ),
-      _MenuItem(
-        'Tiramisu',
-        '\$8.99',
-        '⭐ 4.9',
-        Icons.cake,
-        const Color(0xFFE94560),
-        '10 min',
-      ),
-      _MenuItem(
-        'Matcha Latte',
-        '\$5.99',
-        '⭐ 4.5',
-        Icons.local_cafe,
-        const Color(0xFF00C853),
-        '5 min',
-      ),
-      _MenuItem(
-        'Sushi Platter',
-        '\$18.99',
-        '⭐ 4.9',
-        Icons.set_meal,
-        const Color(0xFFFFB347),
-        '30 min',
-      ),
-    ];
+  Color _parseColor(String colorStr, Color defaultColor) {
+    if (colorStr.isEmpty) return defaultColor;
+    try {
+      String hex = colorStr.replaceAll('#', '');
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+      return Color(int.parse(hex, radix: 16));
+    } catch (_) {
+      return defaultColor;
+    }
+  }
+
+  IconData _getIconFromCategory(
+    int categoryId,
+    List<CategoryModel> allCategories,
+  ) {
+    final cat = allCategories.firstWhere(
+      (c) => c.id == categoryId,
+      orElse: () => CategoryModel(id: 0, name: '', iconName: '', color: ''),
+    );
+
+    switch (cat.iconName) {
+      case 'local_pizza':
+        return Icons.local_pizza;
+      case 'ramen_dining':
+        return Icons.ramen_dining;
+      case 'bakery_dining':
+        return Icons.bakery_dining;
+      case 'local_cafe':
+        return Icons.local_cafe;
+      case 'icecream':
+        return Icons.icecream;
+      case 'lunch_dining':
+        return Icons.lunch_dining;
+      default:
+        return Icons.fastfood;
+    }
+  }
+
+  Color _getColorFromCategory(
+    int categoryId,
+    List<CategoryModel> allCategories,
+  ) {
+    final cat = allCategories.firstWhere(
+      (c) => c.id == categoryId,
+      orElse: () => CategoryModel(id: 0, name: '', iconName: '', color: ''),
+    );
+    return _parseColor(cat.color, AppColors.primaryStart);
+  }
+
+  Widget _buildMenuGrid(List<ProductModel> products) {
+    if (products.isEmpty) {
+      return const Center(
+        child: Text(
+          'No products available.',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
+      );
+    }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.w),
       physics: const BouncingScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.72,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        mainAxisExtent: 260.h,
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
       ),
-      itemCount: items.length,
+      itemCount: products.length,
       itemBuilder: (context, index) {
-        final item = items[index];
+        final item = products[index];
+        final iColor = _getColorFromCategory(item.categoryId, _categories);
+
         return Container(
           decoration: BoxDecoration(
             color: AppColors.surfaceOverlay,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(18.r),
             border: Border.all(color: Colors.white.withValues(alpha: .05)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon image area
+              // Icon/Image area
               Expanded(
                 flex: 5,
                 child: Container(
@@ -206,45 +266,73 @@ class _MenuPageState extends State<MenuPage>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        item.color.withValues(alpha: .25),
-                        item.color.withValues(alpha: .08),
+                        iColor.withValues(alpha: .25),
+                        iColor.withValues(alpha: .08),
                       ],
                     ),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(18),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(18.r),
                     ),
                   ),
                   child: Stack(
                     children: [
-                      Center(
-                        child: Icon(item.icon, size: 48, color: item.color),
-                      ),
+                      if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+                        Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(18.r),
+                            ),
+                            child: Image.network(
+                              item.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Center(
+                                    child: Icon(
+                                      _getIconFromCategory(
+                                        item.categoryId,
+                                        _categories,
+                                      ),
+                                      size: 48.sp,
+                                      color: iColor,
+                                    ),
+                                  ),
+                            ),
+                          ),
+                        )
+                      else
+                        Center(
+                          child: Icon(
+                            _getIconFromCategory(item.categoryId, _categories),
+                            size: 48.sp,
+                            color: iColor,
+                          ),
+                        ),
                       Positioned(
                         top: 8,
                         right: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: .5),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.timer,
                                 color: Colors.white70,
-                                size: 12,
+                                size: 12.sp,
                               ),
-                              const SizedBox(width: 3),
+                              SizedBox(width: 3.w),
                               Text(
-                                item.time,
-                                style: const TextStyle(
+                                item.prepTime ?? '20 min',
+                                style: TextStyle(
                                   color: Colors.white70,
-                                  fontSize: 10,
+                                  fontSize: 10.sp,
                                 ),
                               ),
                             ],
@@ -259,26 +347,26 @@ class _MenuPageState extends State<MenuPage>
               Expanded(
                 flex: 4,
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         item.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
-                        item.rating,
-                        style: const TextStyle(
+                        '⭐ ${item.rating}',
+                        style: TextStyle(
                           color: AppColors.accentGold,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                         ),
                       ),
                       const Spacer(),
@@ -286,24 +374,24 @@ class _MenuPageState extends State<MenuPage>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            item.price,
+                            '\$${item.price.toStringAsFixed(2)}',
                             style: TextStyle(
-                              color: item.color,
-                              fontSize: 16,
+                              color: iColor,
+                              fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Container(
-                            width: 30,
-                            height: 30,
+                            width: 30.w,
+                            height: 30.h,
                             decoration: BoxDecoration(
                               gradient: AppColors.primaryGradient,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(8.r),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.add,
                               color: Colors.white,
-                              size: 18,
+                              size: 18.sp,
                             ),
                           ),
                         ],
@@ -318,22 +406,4 @@ class _MenuPageState extends State<MenuPage>
       },
     );
   }
-}
-
-class _MenuItem {
-  final String name;
-  final String price;
-  final String rating;
-  final IconData icon;
-  final Color color;
-  final String time;
-
-  _MenuItem(
-    this.name,
-    this.price,
-    this.rating,
-    this.icon,
-    this.color,
-    this.time,
-  );
 }

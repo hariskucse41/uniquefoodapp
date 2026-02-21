@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppColors {
   AppColors._();
@@ -57,56 +58,59 @@ class AppTheme {
       secondary: AppColors.accent,
       surface: AppColors.surface,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
-        fontSize: 22,
+        fontSize: 22.sp,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      iconTheme: IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: Colors.white),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: AppColors.surfaceLight,
       selectedItemColor: AppColors.primaryStart,
       unselectedItemColor: AppColors.textMuted,
       type: BottomNavigationBarType.fixed,
       elevation: 20,
-      selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-      unselectedLabelStyle: TextStyle(fontSize: 11),
+      selectedLabelStyle: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 12.sp,
+      ),
+      unselectedLabelStyle: TextStyle(fontSize: 11.sp),
     ),
     cardTheme: CardThemeData(
       color: AppColors.surfaceOverlay,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
     ),
-    textTheme: const TextTheme(
+    textTheme: TextTheme(
       headlineLarge: TextStyle(
-        fontSize: 28,
+        fontSize: 28.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
       ),
       headlineMedium: TextStyle(
-        fontSize: 22,
+        fontSize: 22.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
       ),
       titleLarge: TextStyle(
-        fontSize: 18,
+        fontSize: 18.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
       titleMedium: TextStyle(
-        fontSize: 16,
+        fontSize: 16.sp,
         fontWeight: FontWeight.w500,
         color: AppColors.textPrimary,
       ),
-      bodyLarge: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-      bodyMedium: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+      bodyLarge: TextStyle(fontSize: 16.sp, color: AppColors.textSecondary),
+      bodyMedium: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
       labelSmall: TextStyle(
-        fontSize: 11,
+        fontSize: 11.sp,
         fontWeight: FontWeight.w500,
         color: AppColors.textMuted,
       ),

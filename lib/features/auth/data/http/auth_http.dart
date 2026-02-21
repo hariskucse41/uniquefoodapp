@@ -19,10 +19,10 @@ class AuthApiClient {
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000';
+      return 'http://alphaapi.uniquefood.com';
     }
 
-    return 'http://localhost:5000';
+    return 'http://alphaapi.uniquefood.com';
   }
 
   Future<String> login({
