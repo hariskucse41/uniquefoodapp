@@ -8,12 +8,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._authUseCase) : super(const AuthState()) {
     on<LoginEvent>(_onLogin);
     on<RegisterEvent>(_onRegister);
+    on<LogoutEvent>(_onLogout);
     on<ResetAuthEvent>(_onReset);
   }
 
   final AuthUseCase _authUseCase;
 
   void _onReset(ResetAuthEvent event, Emitter<AuthState> emit) {
+    emit(const AuthState());
+  }
+
+  void _onLogout(LogoutEvent event, Emitter<AuthState> emit) {
     emit(const AuthState());
   }
 
@@ -25,7 +30,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
-      emit(state.copyWith(status: AuthStatus.success, message: message));
+      emit(
+        state.copyWith(
+          status: AuthStatus.loginSuccess,
+          message: message,
+          userEmail: event.email,
+        ),
+      );
     } catch (error) {
       emit(
         state.copyWith(
@@ -45,7 +56,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
-      emit(state.copyWith(status: AuthStatus.success, message: message));
+      emit(
+        state.copyWith(status: AuthStatus.registerSuccess, message: message),
+      );
     } catch (error) {
       emit(
         state.copyWith(

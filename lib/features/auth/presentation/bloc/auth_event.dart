@@ -19,4 +19,6 @@ class RegisterEvent extends AuthEvent {
   final String password;
 }
 
+class LogoutEvent extends AuthEvent {}
+
 class ResetAuthEvent extends AuthEvent {}

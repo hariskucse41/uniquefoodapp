@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/theme/app_theme.dart';
 import 'features/auth/data/http/auth_http.dart';
 import 'features/auth/domain/repository/auth_repository.dart';
 import 'features/auth/domain/use_case/auth_use_case.dart';
@@ -25,10 +26,7 @@ class UniqueFoodApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Unique Food',
-        theme: ThemeData(
-          primarySwatch: Colors.deepPurple,
-          scaffoldBackgroundColor: Colors.white,
-        ),
+        theme: AppTheme.darkTheme,
         home: const LoginPage(),
       ),
     );
