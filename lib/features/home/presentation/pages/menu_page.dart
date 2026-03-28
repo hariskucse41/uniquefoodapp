@@ -6,6 +6,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../domain/models/home_models.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_state.dart';
+import '../utils/home_ui_mapper.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -164,64 +165,13 @@ class _MenuPageState extends State<MenuPage>
                     }).toList(),
                   ),
                 ),
-            ],
+            ], 
           );
         }
 
         return const SizedBox.shrink();
       },
     );
-  }
-
-  Color _parseColor(String colorStr, Color defaultColor) {
-    if (colorStr.isEmpty) return defaultColor;
-    try {
-      String hex = colorStr.replaceAll('#', '');
-      if (hex.length == 6) {
-        hex = 'FF$hex';
-      }
-      return Color(int.parse(hex, radix: 16));
-    } catch (_) {
-      return defaultColor;
-    }
-  }
-
-  IconData _getIconFromCategory(
-    int categoryId,
-    List<CategoryModel> allCategories,
-  ) {
-    final cat = allCategories.firstWhere(
-      (c) => c.id == categoryId,
-      orElse: () => CategoryModel(id: 0, name: '', iconName: '', color: ''),
-    );
-
-    switch (cat.iconName) {
-      case 'local_pizza':
-        return Icons.local_pizza;
-      case 'ramen_dining':
-        return Icons.ramen_dining;
-      case 'bakery_dining':
-        return Icons.bakery_dining;
-      case 'local_cafe':
-        return Icons.local_cafe;
-      case 'icecream':
-        return Icons.icecream;
-      case 'lunch_dining':
-        return Icons.lunch_dining;
-      default:
-        return Icons.fastfood;
-    }
-  }
-
-  Color _getColorFromCategory(
-    int categoryId,
-    List<CategoryModel> allCategories,
-  ) {
-    final cat = allCategories.firstWhere(
-      (c) => c.id == categoryId,
-      orElse: () => CategoryModel(id: 0, name: '', iconName: '', color: ''),
-    );
-    return _parseColor(cat.color, AppColors.primaryStart);
   }
 
   Widget _buildMenuGrid(List<ProductModel> products) {
@@ -246,7 +196,11 @@ class _MenuPageState extends State<MenuPage>
       itemCount: products.length,
       itemBuilder: (context, index) {
         final item = products[index];
-        final iColor = _getColorFromCategory(item.categoryId, _categories);
+        final iColor = HomeUiMapper.colorFromCategoryId(
+          item.categoryId,
+          _categories,
+          AppColors.primaryStart,
+        );
 
         return Container(
           decoration: BoxDecoration(
@@ -287,7 +241,7 @@ class _MenuPageState extends State<MenuPage>
                               errorBuilder: (context, error, stackTrace) =>
                                   Center(
                                     child: Icon(
-                                      _getIconFromCategory(
+                                      HomeUiMapper.iconFromCategoryId(
                                         item.categoryId,
                                         _categories,
                                       ),
@@ -301,7 +255,10 @@ class _MenuPageState extends State<MenuPage>
                       else
                         Center(
                           child: Icon(
-                            _getIconFromCategory(item.categoryId, _categories),
+                            HomeUiMapper.iconFromCategoryId(
+                              item.categoryId,
+                              _categories,
+                            ),
                             size: 48.sp,
                             color: iColor,
                           ),

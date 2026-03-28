@@ -124,39 +124,93 @@ class _HomeShellState extends State<HomeShell> {
   Widget _buildNavItem(IconData icon, String label, int index) {
     final isActive = _currentIndex == index;
 
-    return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(vertical: 10.h),
-        decoration: BoxDecoration(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      width: isActive ? 118.w : 58.w,
+      height: 46.h,
+      decoration: BoxDecoration(
+        gradient: isActive ? AppColors.primaryGradient : null,
+        color: isActive ? null : Colors.transparent,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
           color: isActive
-              ? AppColors.primaryStart.withValues(alpha: .15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(14.r),
+              ? Colors.white.withValues(alpha: .18)
+              : Colors.white.withValues(alpha: .06),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 24.sp,
-              color: isActive ? AppColors.primaryStart : AppColors.textMuted,
-            ),
-            if (isActive) ...[
-              SizedBox(width: 8.w),
-              Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.primaryStart,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13.sp,
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: AppColors.primaryStart.withValues(alpha: .32),
+                  blurRadius: 16.r,
+                  offset: const Offset(0, 7),
                 ),
-              ),
-            ],
-          ],
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14.r),
+          onTap: () => setState(() => _currentIndex = index),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  width: isActive ? 26.w : 22.w,
+                  height: isActive ? 26.h : 22.h,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? Colors.white.withValues(alpha: .2)
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: isActive ? 18.sp : 20.sp,
+                    color: isActive ? Colors.white : AppColors.textMuted,
+                  ),
+                ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        axis: Axis.horizontal,
+                        sizeFactor: animation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: isActive
+                      ? Padding(
+                          key: ValueKey<String>(label),
+                          padding: EdgeInsets.only(left: 8.w, top: 10.h),
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13.sp,
+                              letterSpacing: .1,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(key: ValueKey<String>('empty')),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
