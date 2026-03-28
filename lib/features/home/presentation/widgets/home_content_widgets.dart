@@ -6,9 +6,10 @@ import '../../domain/models/home_models.dart';
 import '../utils/home_ui_mapper.dart';
 
 class HeroBannerCard extends StatelessWidget {
-  const HeroBannerCard({super.key, required this.hero});
+  const HeroBannerCard({super.key, required this.hero, this.onActionTap});
 
   final PromotionModel hero;
+  final VoidCallback? onActionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -95,21 +96,28 @@ class HeroBannerCard extends StatelessWidget {
                   style: TextStyle(color: Colors.white70, fontSize: 15.sp),
                 ),
                 SizedBox(height: 14.h),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                    vertical: 10.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onActionTap,
                     borderRadius: BorderRadius.circular(25.r),
-                  ),
-                  child: Text(
-                    hero.actionText ?? 'Order Now',
-                    style: TextStyle(
-                      color: bannerColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13.sp,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25.r),
+                      ),
+                      child: Text(
+                        hero.actionText ?? 'Order Now',
+                        style: TextStyle(
+                          color: bannerColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13.sp,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -123,18 +131,23 @@ class HeroBannerCard extends StatelessWidget {
 }
 
 class CategoriesStrip extends StatelessWidget {
-  const CategoriesStrip({super.key, required this.categories});
+  const CategoriesStrip({
+    super.key,
+    required this.categories,
+    this.onCategoryTap,
+  });
 
   final List<CategoryModel> categories;
+  final ValueChanged<CategoryModel>? onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 140.h,
+      height: 96.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 4.h),
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
@@ -143,43 +156,52 @@ class CategoriesStrip extends StatelessWidget {
             AppColors.primaryStart,
           );
 
-          return Container(
-            width: 80.w,
-            margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
-            child: Column(
-              children: [
-                Container(
-                  width: 60.w,
-                  height: 60.h,
-                  decoration: BoxDecoration(
-                    color: categoryColor.withValues(alpha: .15),
-                    borderRadius: BorderRadius.circular(18.r),
-                    border: Border.all(
-                      color: categoryColor.withValues(alpha: .3),
-                      width: 1.5.w,
-                    ),
-                  ),
-                  child: Icon(
-                    HomeUiMapper.iconFromName(category.iconName),
-                    color: categoryColor,
-                    size: 28.sp,
+          return SizedBox(
+            width: 75.w,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => onCategoryTap?.call(category),
+                borderRadius: BorderRadius.circular(18.r),
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 4.h),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 60.w,
+                        height: 60.h,
+                        decoration: BoxDecoration(
+                          color: categoryColor.withValues(alpha: .15),
+                          borderRadius: BorderRadius.circular(18.r),
+                          border: Border.all(
+                            color: categoryColor.withValues(alpha: .3),
+                            width: 1.5.w,
+                          ),
+                        ),
+                        child: Icon(
+                          HomeUiMapper.iconFromName(category.iconName),
+                          color: categoryColor,
+                          size: 28.sp,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Expanded(
+                        child: Text(
+                          category.name,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 8.h),
-                Expanded(
-                  child: Text(
-                    category.name,
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+              ),
             ),
           );
         },

@@ -21,12 +21,28 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
+  int? _menuSelectedCategoryId;
+  int _menuSelectionVersion = 0;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    MenuPage(),
-    OrdersPage(),
-    ProfilePage(),
+  void _openMenu({int? categoryId}) {
+    setState(() {
+      _currentIndex = 1;
+      _menuSelectedCategoryId = categoryId;
+      _menuSelectionVersion++;
+    });
+  }
+
+  List<Widget> get _pages => [
+    HomePage(
+      onHeroActionTap: () => _openMenu(),
+      onCategoryTap: (categoryId) => _openMenu(categoryId: categoryId),
+    ),
+    MenuPage(
+      selectedCategoryId: _menuSelectedCategoryId,
+      selectionVersion: _menuSelectionVersion,
+    ),
+    const OrdersPage(),
+    const ProfilePage(),
   ];
 
   final List<String> _titles = const [

@@ -8,7 +8,10 @@ import '../widgets/home_content_widgets.dart';
 import '../widgets/home_sections.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.onHeroActionTap, this.onCategoryTap});
+
+  final VoidCallback? onHeroActionTap;
+  final ValueChanged<int>? onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +32,20 @@ class HomePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (state.heroBanners.isNotEmpty)
-                  HeroBannerCard(hero: state.heroBanners.first),
-                SizedBox(height: 24.h),
+                  HeroBannerCard(
+                    hero: state.heroBanners.first,
+                    onActionTap: onHeroActionTap,
+                  ),
+                SizedBox(height: 10.h),
 
                 if (state.categories.isNotEmpty) ...[
                   HomeSection(
                     title: 'Categories',
-                    child: CategoriesStrip(categories: state.categories),
+                    child: CategoriesStrip(
+                      categories: state.categories,
+                      onCategoryTap: (category) =>
+                          onCategoryTap?.call(category.id),
+                    ),
                   ),
                 ],
 
@@ -56,7 +66,7 @@ class HomePage extends StatelessWidget {
                 if (state.recommendedDishes.isNotEmpty) ...[
                   HomeSection(
                     title: 'Recommended For You',
-                    bottomSpacing: 40,
+                    bottomSpacing: 24,
                     child: RecommendedDishesList(
                       items: state.recommendedDishes,
                     ),

@@ -9,7 +9,14 @@ import '../bloc/home_state.dart';
 import '../utils/home_ui_mapper.dart';
 
 class MenuPage extends StatefulWidget {
-  const MenuPage({super.key});
+  const MenuPage({
+    super.key,
+    this.selectedCategoryId,
+    this.selectionVersion = 0,
+  });
+
+  final int? selectedCategoryId;
+  final int selectionVersion;
 
   @override
   State<MenuPage> createState() => _MenuPageState();
@@ -20,6 +27,23 @@ class _MenuPageState extends State<MenuPage>
   TabController? _tabController;
   List<CategoryModel> _categories = [];
   bool _initialized = false;
+  int? _pendingCategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    _pendingCategoryId = widget.selectedCategoryId;
+  }
+
+  @override
+  void didUpdateWidget(covariant MenuPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.selectionVersion != widget.selectionVersion) {
+      _pendingCategoryId = widget.selectedCategoryId;
+      _jumpToPendingCategory();
+    }
+  }
 
   @override
   void dispose() {
@@ -35,6 +59,25 @@ class _MenuPageState extends State<MenuPage>
     ];
     _tabController = TabController(length: _categories.length, vsync: this);
     _initialized = true;
+    _jumpToPendingCategory();
+  }
+
+  void _jumpToPendingCategory() {
+    if (_tabController == null || _pendingCategoryId == null) {
+      return;
+    }
+
+    final selectedIndex = _categories.indexWhere(
+      (category) => category.id == _pendingCategoryId,
+    );
+
+    _pendingCategoryId = null;
+
+    if (selectedIndex < 0) {
+      return;
+    }
+
+    _tabController!.animateTo(selectedIndex);
   }
 
   @override
@@ -165,7 +208,7 @@ class _MenuPageState extends State<MenuPage>
                     }).toList(),
                   ),
                 ),
-            ], 
+            ],
           );
         }
 

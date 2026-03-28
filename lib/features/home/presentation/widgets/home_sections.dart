@@ -8,7 +8,7 @@ class HomeSection extends StatelessWidget {
     super.key,
     required this.title,
     required this.child,
-    this.bottomSpacing = 28,
+    this.bottomSpacing = 16,
   });
 
   final String title;
@@ -21,7 +21,7 @@ class HomeSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _HomeSectionTitle(title: title),
-        SizedBox(height: 12.h),
+        SizedBox(height: 6.h),
         child,
         SizedBox(height: bottomSpacing.h),
       ],
@@ -37,7 +37,7 @@ class _HomeSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
