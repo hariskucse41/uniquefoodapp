@@ -22,3 +22,10 @@ class RegisterEvent extends AuthEvent {
 class LogoutEvent extends AuthEvent {}
 
 class ResetAuthEvent extends AuthEvent {}
+
+class RestoreSessionEvent extends AuthEvent {
+  RestoreSessionEvent({required this.email, required this.token});
+
+  final String email;
+  final String token;
+}

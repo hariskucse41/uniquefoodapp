@@ -1,3 +1,4 @@
+import '../model/auth_login_result.dart';
 import '../repository/auth_repository.dart';
 
 class AuthUseCase {
@@ -5,7 +6,10 @@ class AuthUseCase {
 
   final AuthRepository _repository;
 
-  Future<String> login({required String email, required String password}) {
+  Future<AuthLoginResult> login({
+    required String email,
+    required String password,
+  }) {
     return _repository.login(email: email, password: password);
   }
 

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'core/storage/shared_preferences_bootstrap.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/http/auth_http.dart';
 import 'features/auth/domain/repository/auth_repository.dart';
 import 'features/auth/domain/use_case/auth_use_case.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/auth_gate_page.dart';
 
 import 'features/home/data/http/home_http.dart';
 import 'features/home/domain/repository/home_repository.dart';
@@ -15,6 +16,8 @@ import 'features/home/presentation/bloc/home_bloc.dart';
 import 'features/home/presentation/bloc/home_event.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferencesBootstrap.ensureInitialized();
   runApp(const UniqueFoodApp());
 }
 
@@ -46,7 +49,7 @@ class UniqueFoodApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Unique Food',
             theme: AppTheme.darkTheme,
-            home: const LoginPage(),
+            home: const AuthGatePage(),
           );
         },
       ),

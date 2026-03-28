@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../../domain/model/auth_login_result.dart';
+
 class AuthApiClient {
   AuthApiClient({http.Client? client}) : _client = client ?? http.Client();
 
@@ -25,7 +27,7 @@ class AuthApiClient {
     return 'http://192.168.0.101:5000';
   }
 
-  Future<String> login({
+  Future<AuthLoginResult> login({
     required String email,
     required String password,
   }) async {
@@ -34,8 +36,7 @@ class AuthApiClient {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
-
-    return _parseResponse(response, successCodes: {200});
+    return _parseLoginResponse(response, successCodes: {200});
   }
 
   Future<String> register({
@@ -89,5 +90,90 @@ class AuthApiClient {
       body?.toString() ??
           'Request failed with status code ${response.statusCode}',
     );
+  }
+
+  AuthLoginResult _parseLoginResponse(
+    http.Response response, {
+    required Set<int> successCodes,
+  }) {
+    final hasBody = response.body.trim().isNotEmpty;
+    dynamic body;
+
+    if (hasBody) {
+      try {
+        body = jsonDecode(response.body);
+      } catch (_) {
+        body = response.body;
+      }
+    }
+
+    if (!successCodes.contains(response.statusCode)) {
+      if (body is Map<String, dynamic>) {
+        final message = body['message'] ?? body['error'] ?? body['title'];
+        throw Exception(
+          message?.toString() ?? 'Request failed: ${response.statusCode}',
+        );
+      }
+
+      throw Exception(
+        body?.toString() ??
+            'Request failed with status code ${response.statusCode}',
+      );
+    }
+
+    if (body is Map<String, dynamic>) {
+      final token = _extractToken(body);
+      if (token == null || token.isEmpty) {
+        throw Exception('Login succeeded but token was not returned by server');
+      }
+
+      final message = (body['message'] ?? body['status'] ?? 'Login successful')
+          .toString();
+
+      return AuthLoginResult(token: token, message: message);
+    }
+
+    if (body is String && _looksLikeJwt(body)) {
+      return AuthLoginResult(token: body, message: 'Login successful');
+    }
+
+    throw Exception('Login succeeded but response format is invalid for token');
+  }
+
+  String? _extractToken(Map<String, dynamic> body) {
+    final directCandidates = [
+      body['token'],
+      body['accessToken'],
+      body['jwt'],
+      body['idToken'],
+    ];
+
+    for (final candidate in directCandidates) {
+      if (candidate is String && candidate.isNotEmpty) {
+        return candidate;
+      }
+    }
+
+    final data = body['data'];
+    if (data is Map<String, dynamic>) {
+      final nestedCandidates = [
+        data['token'],
+        data['accessToken'],
+        data['jwt'],
+        data['idToken'],
+      ];
+      for (final candidate in nestedCandidates) {
+        if (candidate is String && candidate.isNotEmpty) {
+          return candidate;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  bool _looksLikeJwt(String value) {
+    final parts = value.split('.');
+    return parts.length == 3;
   }
 }

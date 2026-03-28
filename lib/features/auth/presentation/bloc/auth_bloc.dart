@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/local/auth_session_storage.dart';
 import '../../domain/use_case/auth_use_case.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -10,6 +11,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterEvent>(_onRegister);
     on<LogoutEvent>(_onLogout);
     on<ResetAuthEvent>(_onReset);
+    on<RestoreSessionEvent>(_onRestoreSession);
   }
 
   final AuthUseCase _authUseCase;
@@ -18,23 +20,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState());
   }
 
-  void _onLogout(LogoutEvent event, Emitter<AuthState> emit) {
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
+    await AuthSessionStorage.clearSession();
     emit(const AuthState());
+  }
+
+  void _onRestoreSession(RestoreSessionEvent event, Emitter<AuthState> emit) {
+    emit(
+      state.copyWith(
+        status: AuthStatus.loginSuccess,
+        userEmail: event.email,
+        token: event.token,
+      ),
+    );
   }
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(state.copyWith(status: AuthStatus.loading, message: null));
 
     try {
-      final message = await _authUseCase.login(
+      final result = await _authUseCase.login(
         email: event.email,
         password: event.password,
       );
+
+      await AuthSessionStorage.saveSession(
+        token: result.token,
+        email: event.email,
+      );
+
       emit(
         state.copyWith(
           status: AuthStatus.loginSuccess,
-          message: message,
+          message: result.message,
           userEmail: event.email,
+          token: result.token,
         ),
       );
     } catch (error) {

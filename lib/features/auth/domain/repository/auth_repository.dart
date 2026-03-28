@@ -1,7 +1,11 @@
 import '../../data/http/auth_http.dart';
+import '../model/auth_login_result.dart';
 
 abstract class AuthRepository {
-  Future<String> login({required String email, required String password});
+  Future<AuthLoginResult> login({
+    required String email,
+    required String password,
+  });
 
   Future<String> register({
     required String name,
@@ -16,7 +20,10 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthApiClient _apiClient;
 
   @override
-  Future<String> login({required String email, required String password}) {
+  Future<AuthLoginResult> login({
+    required String email,
+    required String password,
+  }) {
     return _apiClient.login(email: email, password: password);
   }
 
