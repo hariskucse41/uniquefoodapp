@@ -31,7 +31,7 @@ class OrdersPage extends StatelessWidget {
               .toList();
 
           return DefaultTabController(
-            length: 3,
+            length: 2,
             child: Column(
               children: [
                 // Status tabs
@@ -57,8 +57,7 @@ class OrdersPage extends StatelessWidget {
                     ),
                     tabs: const [
                       Tab(text: 'Active'),
-                      Tab(text: 'Completed'),
-                      Tab(text: 'Cancelled'),
+                      Tab(text: 'History'),
                     ],
                   ),
                 ),
@@ -69,7 +68,6 @@ class OrdersPage extends StatelessWidget {
                     children: [
                       _buildOrdersList(activeOrders),
                       _buildOrdersList(completedOrders),
-                      _buildEmptyOrders('No cancelled orders'),
                     ],
                   ),
                 ),

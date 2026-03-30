@@ -10,6 +10,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   HomeBloc(this.repository) : super(HomeInitial()) {
     on<LoadHomeDataEvent>(_onLoadHomeData);
+    on<RefreshOrdersEvent>(_onRefreshOrders);
+    on<CreateOrderEvent>(_onCreateOrder);
+    on<ClearOrderActionMessageEvent>(_onClearOrderActionMessage);
   }
 
   Future<void> _onLoadHomeData(
@@ -25,8 +28,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         repository.getPopularDishes(),
         repository.getRecommendedDishes(),
         repository.getProducts(),
-        repository.getOrders('Preparing'),
-        repository.getOrders('Delivered'),
+        repository.getActiveOrders(),
+        repository.getOrderHistory(),
         repository.getUserProfile(),
       ]);
 
@@ -46,5 +49,103 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       emit(HomeError(e.toString()));
     }
+  }
+
+  Future<void> _onRefreshOrders(
+    RefreshOrdersEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! HomeLoaded) {
+      return;
+    }
+
+    try {
+      final responses = await Future.wait([
+        repository.getActiveOrders(),
+        repository.getOrderHistory(),
+      ]);
+
+      emit(
+        currentState.copyWith(
+          activeOrders: responses[0] as List<dynamic>,
+          completedOrders: responses[1] as List<dynamic>,
+        ),
+      );
+    } catch (e) {
+      emit(
+        currentState.copyWith(
+          orderActionMessage: e.toString().replaceFirst('Exception: ', ''),
+          isOrderActionError: true,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onCreateOrder(
+    CreateOrderEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! HomeLoaded) {
+      return;
+    }
+
+    if (event.items.isEmpty) {
+      emit(
+        currentState.copyWith(
+          orderActionMessage: 'Please add at least one item before checkout.',
+          isOrderActionError: true,
+        ),
+      );
+      return;
+    }
+
+    emit(
+      currentState.copyWith(
+        isCreatingOrder: true,
+        clearOrderActionMessage: true,
+        isOrderActionError: false,
+      ),
+    );
+
+    try {
+      await repository.createOrder(event.items);
+
+      final orderResponses = await Future.wait([
+        repository.getActiveOrders(),
+        repository.getOrderHistory(),
+      ]);
+
+      emit(
+        currentState.copyWith(
+          isCreatingOrder: false,
+          activeOrders: orderResponses[0] as List<dynamic>,
+          completedOrders: orderResponses[1] as List<dynamic>,
+          orderActionMessage: 'Order placed successfully.',
+          isOrderActionError: false,
+        ),
+      );
+    } catch (e) {
+      emit(
+        currentState.copyWith(
+          isCreatingOrder: false,
+          orderActionMessage: e.toString().replaceFirst('Exception: ', ''),
+          isOrderActionError: true,
+        ),
+      );
+    }
+  }
+
+  void _onClearOrderActionMessage(
+    ClearOrderActionMessageEvent event,
+    Emitter<HomeState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! HomeLoaded) {
+      return;
+    }
+
+    emit(currentState.copyWith(clearOrderActionMessage: true));
   }
 }

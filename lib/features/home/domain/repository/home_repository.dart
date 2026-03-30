@@ -1,4 +1,5 @@
 import '../models/home_models.dart';
+import '../models/extra_models.dart';
 import '../../data/http/home_http.dart';
 
 abstract class HomeRepository {
@@ -8,7 +9,9 @@ abstract class HomeRepository {
   Future<List<ProductModel>> getPopularDishes();
   Future<List<ProductModel>> getRecommendedDishes();
   Future<List<ProductModel>> getProducts({int? categoryId});
-  Future<List<dynamic>> getOrders(String status);
+  Future<List<dynamic>> getActiveOrders();
+  Future<List<dynamic>> getOrderHistory();
+  Future<void> createOrder(List<CreateOrderItemModel> items);
   Future<Map<String, dynamic>?> getUserProfile();
 }
 
@@ -48,8 +51,18 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<List<dynamic>> getOrders(String status) {
-    return _apiClient.getOrders(status);
+  Future<List<dynamic>> getActiveOrders() {
+    return _apiClient.getActiveOrders();
+  }
+
+  @override
+  Future<List<dynamic>> getOrderHistory() {
+    return _apiClient.getOrderHistory();
+  }
+
+  @override
+  Future<void> createOrder(List<CreateOrderItemModel> items) {
+    return _apiClient.createOrder(items);
   }
 
   @override

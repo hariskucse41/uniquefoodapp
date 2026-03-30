@@ -3,8 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/models/extra_models.dart';
 import '../../domain/models/home_models.dart';
 import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../utils/home_ui_mapper.dart';
 
@@ -28,6 +30,7 @@ class _MenuPageState extends State<MenuPage>
   List<CategoryModel> _categories = [];
   bool _initialized = false;
   int? _pendingCategoryId;
+  final Map<int, int> _cartQuantities = {};
 
   @override
   void initState() {
@@ -80,9 +83,69 @@ class _MenuPageState extends State<MenuPage>
     _tabController!.animateTo(selectedIndex);
   }
 
+  int _totalCartItems() {
+    return _cartQuantities.values.fold(0, (sum, qty) => sum + qty);
+  }
+
+  double _totalCartPrice(List<ProductModel> products) {
+    final byId = {for (final product in products) product.id: product};
+    double total = 0;
+    _cartQuantities.forEach((productId, quantity) {
+      final product = byId[productId];
+      if (product != null) {
+        total += product.price * quantity;
+      }
+    });
+    return total;
+  }
+
+  void _addToCart(ProductModel product) {
+    setState(() {
+      final currentQty = _cartQuantities[product.id] ?? 0;
+      _cartQuantities[product.id] = currentQty + 1;
+    });
+  }
+
+  List<CreateOrderItemModel> _buildOrderItems() {
+    return _cartQuantities.entries
+        .where((entry) => entry.value > 0)
+        .map(
+          (entry) =>
+              CreateOrderItemModel(productId: entry.key, quantity: entry.value),
+        )
+        .toList();
+  }
+
+  void _placeOrder() {
+    final orderItems = _buildOrderItems();
+    context.read<HomeBloc>().add(CreateOrderEvent(items: orderItems));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
+    return BlocConsumer<HomeBloc, HomeState>(
+      listener: (context, state) {
+        if (state is! HomeLoaded || state.orderActionMessage == null) {
+          return;
+        }
+
+        if (!state.isOrderActionError) {
+          setState(() {
+            _cartQuantities.clear();
+          });
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.orderActionMessage!),
+            backgroundColor: state.isOrderActionError
+                ? const Color(0xFFE94560)
+                : const Color(0xFF00C853),
+          ),
+        );
+
+        context.read<HomeBloc>().add(ClearOrderActionMessageEvent());
+      },
       builder: (context, state) {
         if (state is HomeLoading || state is HomeInitial) {
           return const Center(child: CircularProgressIndicator());
@@ -206,6 +269,73 @@ class _MenuPageState extends State<MenuPage>
                                 .toList();
                       return _buildMenuGrid(filteredProducts);
                     }).toList(),
+                  ),
+                ),
+
+              if (_cartQuantities.isNotEmpty)
+                Container(
+                  margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 12.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceOverlay,
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: .08),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${_totalCartItems()} item(s) in cart',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              '\$${_totalCartPrice(state.products).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: AppColors.primaryStart,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: state.isCreatingOrder ? null : _placeOrder,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryStart,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 18.w,
+                            vertical: 12.h,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                        child: state.isCreatingOrder
+                            ? SizedBox(
+                                width: 18.w,
+                                height: 18.h,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Place Order'),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -380,17 +510,53 @@ class _MenuPageState extends State<MenuPage>
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Container(
-                            width: 30.w,
-                            height: 30.h,
-                            decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 18.sp,
+                          InkWell(
+                            onTap: () => _addToCart(item),
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Container(
+                              width: 30.w,
+                              height: 30.h,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Center(
+                                    child: Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 18.sp,
+                                    ),
+                                  ),
+                                  if ((_cartQuantities[item.id] ?? 0) > 0)
+                                    Positioned(
+                                      right: -6,
+                                      top: -6,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 4.w,
+                                          vertical: 1.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.accent,
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${_cartQuantities[item.id]}',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9.sp,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

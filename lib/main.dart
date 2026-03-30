@@ -13,7 +13,6 @@ import 'features/auth/presentation/pages/auth_gate_page.dart';
 import 'features/home/data/http/home_http.dart';
 import 'features/home/domain/repository/home_repository.dart';
 import 'features/home/presentation/bloc/home_bloc.dart';
-import 'features/home/presentation/bloc/home_event.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,9 +35,7 @@ class UniqueFoodApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => AuthBloc(authUseCase)),
-        BlocProvider(
-          create: (_) => HomeBloc(homeRepository)..add(LoadHomeDataEvent()),
-        ),
+        BlocProvider(create: (_) => HomeBloc(homeRepository)),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852), // iPhone 14 Pro max size or standard

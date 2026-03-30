@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../auth/data/local/auth_session_storage.dart';
+import '../../domain/models/extra_models.dart';
 import '../../domain/models/home_models.dart';
 
 class HomeApiClient {
@@ -87,21 +88,59 @@ class HomeApiClient {
     return _parseListResponse(response, (json) => ProductModel.fromJson(json));
   }
 
-  Future<List<dynamic>> getOrders(String status) async {
-    // Note: Use the OrderModel returned format, but return raw dynamic for brevity,
-    // or just return dynamic until we integrate the full model. Let's return raw json list for now.
+  Future<List<dynamic>> getActiveOrders() async {
     final headers = await _buildAuthHeaders();
     final response = await _client.get(
-      Uri.parse('$_baseUrl/api/Orders?status=$status'),
+      Uri.parse('$_baseUrl/api/Orders/active'),
       headers: headers,
     );
-    if ({200, 201}.contains(response.statusCode)) {
+
+    return _parseDynamicListResponse(response);
+  }
+
+  Future<List<dynamic>> getOrderHistory() async {
+    final headers = await _buildAuthHeaders();
+    final response = await _client.get(
+      Uri.parse('$_baseUrl/api/Orders/history'),
+      headers: headers,
+    );
+
+    return _parseDynamicListResponse(response);
+  }
+
+  Future<void> createOrder(List<CreateOrderItemModel> items) async {
+    final headers = await _buildAuthHeaders();
+    headers['Content-Type'] = 'application/json';
+
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/api/Orders'),
+      headers: headers,
+      body: jsonEncode({'items': items.map((item) => item.toJson()).toList()}),
+    );
+
+    if (!{200, 201}.contains(response.statusCode)) {
       final hasBody = response.body.trim().isNotEmpty;
       if (hasBody) {
-        return jsonDecode(response.body) as List<dynamic>;
+        dynamic body;
+        try {
+          body = jsonDecode(response.body);
+        } catch (_) {
+          body = response.body;
+        }
+
+        if (body is Map<String, dynamic>) {
+          final message = body['message'] ?? body['error'] ?? body['title'];
+          throw Exception(
+            message?.toString() ??
+                'Failed to create order: status ${response.statusCode}',
+          );
+        }
+
+        throw Exception(body.toString());
       }
+
+      throw Exception('Failed to create order: status ${response.statusCode}');
     }
-    return [];
   }
 
   Future<Map<String, dynamic>?> getUserProfile() async {
@@ -133,6 +172,26 @@ class HomeApiClient {
     }
 
     throw Exception('Failed to load data, status code: ${response.statusCode}');
+  }
+
+  List<dynamic> _parseDynamicListResponse(http.Response response) {
+    if ({200, 201}.contains(response.statusCode)) {
+      final hasBody = response.body.trim().isNotEmpty;
+      if (!hasBody) {
+        return [];
+      }
+
+      final body = jsonDecode(response.body);
+      if (body is List<dynamic>) {
+        return body;
+      }
+
+      return [];
+    }
+
+    throw Exception(
+      'Failed to load orders, status code: ${response.statusCode}',
+    );
   }
 
   Future<Map<String, String>> _buildAuthHeaders() async {

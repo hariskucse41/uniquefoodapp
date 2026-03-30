@@ -11,6 +11,8 @@ import 'home_page.dart';
 import 'menu_page.dart';
 import 'orders_page.dart';
 import 'profile_page.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -23,6 +25,12 @@ class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
   int? _menuSelectedCategoryId;
   int _menuSelectionVersion = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(LoadHomeDataEvent());
+  }
 
   void _openMenu({int? categoryId}) {
     setState(() {
