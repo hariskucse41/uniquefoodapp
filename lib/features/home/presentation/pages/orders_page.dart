@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/models/extra_models.dart';
 import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 
 class OrdersPage extends StatelessWidget {
@@ -31,9 +32,12 @@ class OrdersPage extends StatelessWidget {
           final completedOrders = state.completedOrders
               .map((json) => OrderModel.fromJson(json))
               .toList();
+          final cancelledOrders = state.cancelledOrders
+              .map((json) => OrderModel.fromJson(json))
+              .toList();
 
           return DefaultTabController(
-            length: 2,
+            length: 3,
             initialIndex: initialTabIndex,
             child: Column(
               children: [
@@ -60,7 +64,8 @@ class OrdersPage extends StatelessWidget {
                     ),
                     tabs: const [
                       Tab(text: 'Active'),
-                      Tab(text: 'History'),
+                      Tab(text: 'Completed'),
+                      Tab(text: 'Cancelled'),
                     ],
                   ),
                 ),
@@ -71,6 +76,7 @@ class OrdersPage extends StatelessWidget {
                     children: [
                       _buildOrdersList(activeOrders),
                       _buildOrdersList(completedOrders),
+                      _buildOrdersList(cancelledOrders),
                     ],
                   ),
                 ),
@@ -87,6 +93,7 @@ class OrdersPage extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
+      case 'confirmed':
       case 'preparing':
         return const Color(0xFFFFB347);
       case 'outfordelivery':
@@ -114,6 +121,7 @@ class OrdersPage extends StatelessWidget {
       itemBuilder: (context, index) {
         final order = orders[index];
         final statusColor = _getStatusColor(order.status);
+        final canDelete = _canDeleteOrder(order.status);
 
         return Container(
           margin: EdgeInsets.only(bottom: 14.h),
@@ -158,6 +166,43 @@ class OrdersPage extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (canDelete) ...[
+                    SizedBox(width: 8.w),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8.r),
+                      onTap: () async {
+                        final shouldDelete = await _confirmDelete(context);
+                        if (!shouldDelete) {
+                          return;
+                        }
+
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        context.read<HomeBloc>().add(
+                          DeleteOrderEvent(orderId: order.id),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(6.w),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE94560).withValues(alpha: .12),
+                          borderRadius: BorderRadius.circular(8.r),
+                          border: Border.all(
+                            color: const Color(
+                              0xFFE94560,
+                            ).withValues(alpha: .22),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: const Color(0xFFE94560),
+                          size: 16.sp,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               SizedBox(height: 12.h),
@@ -296,5 +341,34 @@ class OrdersPage extends StatelessWidget {
     final mm = parsed.minute.toString().padLeft(2, '0');
 
     return '$y-$m-$d $hh:$mm $period';
+  }
+
+  bool _canDeleteOrder(String status) {
+    final normalized = status.toLowerCase().replaceAll(' ', '');
+    return normalized == 'pending' || normalized == 'cancelled';
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete order?'),
+        content: const Text(
+          'You can only delete Pending or Cancelled orders. Do you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Yes, delete'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
   }
 }

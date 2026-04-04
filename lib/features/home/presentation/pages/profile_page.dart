@@ -40,7 +40,11 @@ class ProfilePage extends StatelessWidget {
             }
           } else {
             // fallback to local active orders just for UI feel if stats not back yet
-            ordersCount = homeState.activeOrders.length.toString();
+            ordersCount =
+                (homeState.activeOrders.length +
+                        homeState.completedOrders.length +
+                        homeState.cancelledOrders.length)
+                    .toString();
           }
         }
 

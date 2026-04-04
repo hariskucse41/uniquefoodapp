@@ -15,6 +15,7 @@ class HomeLoaded extends HomeState {
   final List<ProductModel> products;
   final List<dynamic> activeOrders;
   final List<dynamic> completedOrders;
+  final List<dynamic> cancelledOrders;
   final Map<String, dynamic>? userProfile;
   final bool isCreatingOrder;
   final String? orderActionMessage;
@@ -29,6 +30,7 @@ class HomeLoaded extends HomeState {
     required this.products,
     required this.activeOrders,
     required this.completedOrders,
+    required this.cancelledOrders,
     this.userProfile,
     this.isCreatingOrder = false,
     this.orderActionMessage,
@@ -44,6 +46,7 @@ class HomeLoaded extends HomeState {
     List<ProductModel>? products,
     List<dynamic>? activeOrders,
     List<dynamic>? completedOrders,
+    List<dynamic>? cancelledOrders,
     Map<String, dynamic>? userProfile,
     bool? isCreatingOrder,
     String? orderActionMessage,
@@ -59,6 +62,7 @@ class HomeLoaded extends HomeState {
       products: products ?? this.products,
       activeOrders: activeOrders ?? this.activeOrders,
       completedOrders: completedOrders ?? this.completedOrders,
+      cancelledOrders: cancelledOrders ?? this.cancelledOrders,
       userProfile: userProfile ?? this.userProfile,
       isCreatingOrder: isCreatingOrder ?? this.isCreatingOrder,
       orderActionMessage: clearOrderActionMessage

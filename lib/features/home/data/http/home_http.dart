@@ -88,24 +88,52 @@ class HomeApiClient {
     return _parseListResponse(response, (json) => ProductModel.fromJson(json));
   }
 
-  Future<List<dynamic>> getActiveOrders() async {
+  Future<List<dynamic>> getOrders({String? status}) async {
     final headers = await _buildAuthHeaders();
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/api/Orders/active'),
-      headers: headers,
-    );
+    final uri = Uri.parse(
+      '$_baseUrl/api/Orders',
+    ).replace(queryParameters: status == null ? null : {'status': status});
 
+    final response = await _client.get(uri, headers: headers);
     return _parseDynamicListResponse(response);
   }
 
-  Future<List<dynamic>> getOrderHistory() async {
-    final headers = await _buildAuthHeaders();
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/api/Orders/history'),
-      headers: headers,
-    );
+  Future<List<dynamic>> getActiveOrders() async {
+    final responses = await Future.wait([
+      getOrders(status: 'Pending'),
+      getOrders(status: 'Confirmed'),
+      getOrders(status: 'Preparing'),
+      getOrders(status: 'OutForDelivery'),
+    ]);
 
-    return _parseDynamicListResponse(response);
+    final merged = <dynamic>[];
+    final seenOrderIds = <String>{};
+
+    for (final orders in responses) {
+      for (final order in orders) {
+        if (order is Map<String, dynamic>) {
+          final id = order['id']?.toString();
+          if (id == null || id.isEmpty) {
+            merged.add(order);
+            continue;
+          }
+
+          if (seenOrderIds.add(id)) {
+            merged.add(order);
+          }
+        }
+      }
+    }
+
+    return merged;
+  }
+
+  Future<List<dynamic>> getCompletedOrders() async {
+    return getOrders(status: 'Completed');
+  }
+
+  Future<List<dynamic>> getCancelledOrders() async {
+    return getOrders(status: 'Cancelled');
   }
 
   Future<void> createOrder(List<CreateOrderItemModel> items) async {
@@ -119,27 +147,29 @@ class HomeApiClient {
     );
 
     if (!{200, 201}.contains(response.statusCode)) {
-      final hasBody = response.body.trim().isNotEmpty;
-      if (hasBody) {
-        dynamic body;
-        try {
-          body = jsonDecode(response.body);
-        } catch (_) {
-          body = response.body;
-        }
+      throw Exception(
+        _extractErrorMessage(
+          response,
+          fallback: 'Failed to create order: status ${response.statusCode}',
+        ),
+      );
+    }
+  }
 
-        if (body is Map<String, dynamic>) {
-          final message = body['message'] ?? body['error'] ?? body['title'];
-          throw Exception(
-            message?.toString() ??
-                'Failed to create order: status ${response.statusCode}',
-          );
-        }
+  Future<void> deleteOrder(String orderId) async {
+    final headers = await _buildAuthHeaders();
+    final response = await _client.delete(
+      Uri.parse('$_baseUrl/api/Orders/$orderId'),
+      headers: headers,
+    );
 
-        throw Exception(body.toString());
-      }
-
-      throw Exception('Failed to create order: status ${response.statusCode}');
+    if (!{200, 204}.contains(response.statusCode)) {
+      throw Exception(
+        _extractErrorMessage(
+          response,
+          fallback: 'Failed to delete order: status ${response.statusCode}',
+        ),
+      );
     }
   }
 
@@ -201,5 +231,35 @@ class HomeApiClient {
     }
 
     return {'Authorization': 'Bearer $token'};
+  }
+
+  String _extractErrorMessage(
+    http.Response response, {
+    required String fallback,
+  }) {
+    final hasBody = response.body.trim().isNotEmpty;
+    if (!hasBody) {
+      return fallback;
+    }
+
+    try {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        final message = body['message'] ?? body['error'] ?? body['title'];
+        if (message != null && message.toString().trim().isNotEmpty) {
+          return message.toString();
+        }
+      }
+
+      if (body is String && body.trim().isNotEmpty) {
+        return body;
+      }
+    } catch (_) {
+      if (response.body.trim().isNotEmpty) {
+        return response.body;
+      }
+    }
+
+    return fallback;
   }
 }

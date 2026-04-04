@@ -82,8 +82,14 @@ class OrderModel {
         case 0:
           return 'Pending';
         case 1:
-          return 'Completed';
+          return 'Confirmed';
         case 2:
+          return 'Preparing';
+        case 3:
+          return 'OutForDelivery';
+        case 4:
+          return 'Completed';
+        case 5:
           return 'Cancelled';
         default:
           return rawStatus.toString();
@@ -92,8 +98,11 @@ class OrderModel {
 
     final str = rawStatus.toString();
     if (str == '0') return 'Pending';
-    if (str == '1') return 'Completed';
-    if (str == '2') return 'Cancelled';
+    if (str == '1') return 'Confirmed';
+    if (str == '2') return 'Preparing';
+    if (str == '3') return 'OutForDelivery';
+    if (str == '4') return 'Completed';
+    if (str == '5') return 'Cancelled';
     return str;
   }
 }

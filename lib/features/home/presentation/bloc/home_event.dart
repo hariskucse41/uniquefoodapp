@@ -12,4 +12,10 @@ class CreateOrderEvent extends HomeEvent {
   final List<CreateOrderItemModel> items;
 }
 
+class DeleteOrderEvent extends HomeEvent {
+  DeleteOrderEvent({required this.orderId});
+
+  final String orderId;
+}
+
 class ClearOrderActionMessageEvent extends HomeEvent {}

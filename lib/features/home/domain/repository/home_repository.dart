@@ -10,8 +10,10 @@ abstract class HomeRepository {
   Future<List<ProductModel>> getRecommendedDishes();
   Future<List<ProductModel>> getProducts({int? categoryId});
   Future<List<dynamic>> getActiveOrders();
-  Future<List<dynamic>> getOrderHistory();
+  Future<List<dynamic>> getCompletedOrders();
+  Future<List<dynamic>> getCancelledOrders();
   Future<void> createOrder(List<CreateOrderItemModel> items);
+  Future<void> deleteOrder(String orderId);
   Future<Map<String, dynamic>?> getUserProfile();
 }
 
@@ -56,13 +58,23 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<List<dynamic>> getOrderHistory() {
-    return _apiClient.getOrderHistory();
+  Future<List<dynamic>> getCompletedOrders() {
+    return _apiClient.getCompletedOrders();
+  }
+
+  @override
+  Future<List<dynamic>> getCancelledOrders() {
+    return _apiClient.getCancelledOrders();
   }
 
   @override
   Future<void> createOrder(List<CreateOrderItemModel> items) {
     return _apiClient.createOrder(items);
+  }
+
+  @override
+  Future<void> deleteOrder(String orderId) {
+    return _apiClient.deleteOrder(orderId);
   }
 
   @override
