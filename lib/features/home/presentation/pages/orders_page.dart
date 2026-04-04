@@ -8,7 +8,9 @@ import '../bloc/home_bloc.dart';
 import '../bloc/home_state.dart';
 
 class OrdersPage extends StatelessWidget {
-  const OrdersPage({super.key});
+  const OrdersPage({super.key, this.initialTabIndex = 0});
+
+  final int initialTabIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class OrdersPage extends StatelessWidget {
 
           return DefaultTabController(
             length: 2,
+            initialIndex: initialTabIndex,
             child: Column(
               children: [
                 // Status tabs
@@ -127,7 +130,7 @@ class OrdersPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Order #${order.id}',
+                    'Order #${_displayOrderNumber(order.id)}',
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
@@ -161,27 +164,54 @@ class OrdersPage extends StatelessWidget {
               ...order.items.map(
                 (item) => Padding(
                   padding: EdgeInsets.only(bottom: 6.h),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Container(
-                        width: 6.w,
-                        height: 6.h,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryStart,
-                          borderRadius: BorderRadius.circular(3.r),
-                        ),
-                      ),
-                      SizedBox(width: 10.w),
-                      Expanded(
-                        child: Text(
-                          '${item.quantity}x ${item.productName}',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 13.sp,
+                      Row(
+                        children: [
+                          Container(
+                            width: 6.w,
+                            height: 6.h,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryStart,
+                              borderRadius: BorderRadius.circular(3.r),
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: Text(
+                              '${item.quantity}x ${item.productName}',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13.sp,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 2.h),
+                      Row(
+                        children: [
+                          SizedBox(width: 16.w),
+                          Expanded(
+                            child: Text(
+                              '\$${item.price.toStringAsFixed(2)} x ${item.quantity}',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11.sp,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -194,7 +224,7 @@ class OrdersPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    order.orderDate,
+                    _formatOrderDateToMinute(order.orderDate),
                     style: TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 12.sp,
@@ -235,5 +265,36 @@ class OrdersPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _displayOrderNumber(String rawId) {
+    if (rawId.isEmpty) return '000000';
+
+    var hash = 0;
+    for (final code in rawId.codeUnits) {
+      hash = (hash * 31 + code) & 0x7fffffff;
+    }
+
+    final displayNumber = hash % 1000000;
+    return displayNumber.toString().padLeft(6, '0');
+  }
+
+  String _formatOrderDateToMinute(String rawDate) {
+    if (rawDate.isEmpty) return rawDate;
+
+    final parsed = DateTime.tryParse(rawDate);
+    if (parsed == null) {
+      return rawDate.length >= 16 ? rawDate.substring(0, 16) : rawDate;
+    }
+
+    final y = parsed.year.toString().padLeft(4, '0');
+    final m = parsed.month.toString().padLeft(2, '0');
+    final d = parsed.day.toString().padLeft(2, '0');
+    final hour12 = parsed.hour % 12 == 0 ? 12 : parsed.hour % 12;
+    final period = parsed.hour >= 12 ? 'PM' : 'AM';
+    final hh = hour12.toString().padLeft(2, '0');
+    final mm = parsed.minute.toString().padLeft(2, '0');
+
+    return '$y-$m-$d $hh:$mm $period';
   }
 }

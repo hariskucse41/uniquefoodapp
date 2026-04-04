@@ -21,10 +21,10 @@ class AuthApiClient {
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://192.168.0.101:5000';
+      return 'http://192.168.0.105:5000';
     }
 
-    return 'http://192.168.0.101:5000';
+    return 'http://192.168.0.105:5000';
   }
 
   Future<AuthLoginResult> login({

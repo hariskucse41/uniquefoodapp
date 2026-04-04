@@ -10,7 +10,9 @@ import '../bloc/home_bloc.dart';
 import '../bloc/home_state.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({super.key, this.onOpenOrderHistory});
+
+  final VoidCallback? onOpenOrderHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +153,7 @@ class ProfilePage extends StatelessWidget {
                 'Order History',
                 'View past orders',
                 const Color(0xFF667EEA),
+                onTap: onOpenOrderHistory,
               ),
               _buildMenuItem(
                 Icons.favorite,
@@ -274,50 +277,57 @@ class ProfilePage extends StatelessWidget {
     IconData icon,
     String title,
     String subtitle,
-    Color color,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceOverlay,
-        borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: Colors.white.withValues(alpha: .05)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42.w,
-            height: 42.h,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: .15),
-              borderRadius: BorderRadius.circular(12.r),
+    Color color, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10.h),
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceOverlay,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: Colors.white.withValues(alpha: .05)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42.w,
+              height: 42.h,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: .15),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(icon, color: color, size: 22.sp),
             ),
-            child: Icon(icon, color: color, size: 22.sp),
-          ),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
+            SizedBox(width: 14.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12.sp),
-                ),
-              ],
+                  SizedBox(height: 2.h),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20.sp),
-        ],
+            Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20.sp),
+          ],
+        ),
       ),
     );
   }

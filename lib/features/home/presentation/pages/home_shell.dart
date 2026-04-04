@@ -25,6 +25,8 @@ class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
   int? _menuSelectedCategoryId;
   int _menuSelectionVersion = 0;
+  int _ordersInitialTabIndex = 0;
+  int _ordersSelectionVersion = 0;
 
   @override
   void initState() {
@@ -40,6 +42,14 @@ class _HomeShellState extends State<HomeShell> {
     });
   }
 
+  void _openOrderHistoryFromProfile() {
+    setState(() {
+      _currentIndex = 2;
+      _ordersInitialTabIndex = 1;
+      _ordersSelectionVersion++;
+    });
+  }
+
   List<Widget> get _pages => [
     HomePage(
       onHeroActionTap: () => _openMenu(),
@@ -49,8 +59,11 @@ class _HomeShellState extends State<HomeShell> {
       selectedCategoryId: _menuSelectedCategoryId,
       selectionVersion: _menuSelectionVersion,
     ),
-    const OrdersPage(),
-    const ProfilePage(),
+    OrdersPage(
+      key: ValueKey<int>(_ordersSelectionVersion),
+      initialTabIndex: _ordersInitialTabIndex,
+    ),
+    ProfilePage(onOpenOrderHistory: _openOrderHistoryFromProfile),
   ];
 
   final List<String> _titles = const [
