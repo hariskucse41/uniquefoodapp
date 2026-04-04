@@ -24,6 +24,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
   int? _menuSelectedCategoryId;
+  int? _menuSelectedProductId;
   int _menuSelectionVersion = 0;
   int _ordersInitialTabIndex = 0;
   int _ordersSelectionVersion = 0;
@@ -34,10 +35,11 @@ class _HomeShellState extends State<HomeShell> {
     context.read<HomeBloc>().add(LoadHomeDataEvent());
   }
 
-  void _openMenu({int? categoryId}) {
+  void _openMenu({int? categoryId, int? productId}) {
     setState(() {
       _currentIndex = 1;
       _menuSelectedCategoryId = categoryId;
+      _menuSelectedProductId = productId;
       _menuSelectionVersion++;
     });
   }
@@ -54,9 +56,16 @@ class _HomeShellState extends State<HomeShell> {
     HomePage(
       onHeroActionTap: () => _openMenu(),
       onCategoryTap: (categoryId) => _openMenu(categoryId: categoryId),
+      onPopularAddTap: (product) =>
+          _openMenu(categoryId: product.categoryId, productId: product.id),
+      onRecommendedAddTap: (product) =>
+          _openMenu(categoryId: product.categoryId, productId: product.id),
+      onPopularSeeAllTap: () => _openMenu(),
+      onRecommendedSeeAllTap: () => _openMenu(),
     ),
     MenuPage(
       selectedCategoryId: _menuSelectedCategoryId,
+      selectedProductId: _menuSelectedProductId,
       selectionVersion: _menuSelectionVersion,
     ),
     OrdersPage(

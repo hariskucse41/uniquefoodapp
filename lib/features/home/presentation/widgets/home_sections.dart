@@ -8,11 +8,13 @@ class HomeSection extends StatelessWidget {
     super.key,
     required this.title,
     required this.child,
+    this.onSeeAllTap,
     this.bottomSpacing = 16,
   });
 
   final String title;
   final Widget child;
+  final VoidCallback? onSeeAllTap;
   final double bottomSpacing;
 
   @override
@@ -20,7 +22,7 @@ class HomeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _HomeSectionTitle(title: title),
+        _HomeSectionTitle(title: title, onSeeAllTap: onSeeAllTap),
         SizedBox(height: 6.h),
         child,
         SizedBox(height: bottomSpacing.h),
@@ -30,9 +32,10 @@ class HomeSection extends StatelessWidget {
 }
 
 class _HomeSectionTitle extends StatelessWidget {
-  const _HomeSectionTitle({required this.title});
+  const _HomeSectionTitle({required this.title, this.onSeeAllTap});
 
   final String title;
+  final VoidCallback? onSeeAllTap;
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +52,19 @@ class _HomeSectionTitle extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
           ),
-          Text(
-            'See All',
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primaryStart,
+          InkWell(
+            onTap: onSeeAllTap,
+            borderRadius: BorderRadius.circular(8.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+              child: Text(
+                'See All',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primaryStart,
+                ),
+              ),
             ),
           ),
         ],

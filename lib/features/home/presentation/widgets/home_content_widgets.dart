@@ -308,9 +308,10 @@ class SpecialOffersStrip extends StatelessWidget {
 }
 
 class PopularDishesStrip extends StatelessWidget {
-  const PopularDishesStrip({super.key, required this.dishes});
+  const PopularDishesStrip({super.key, required this.dishes, this.onAddTap});
 
   final List<ProductModel> dishes;
+  final ValueChanged<ProductModel>? onAddTap;
 
   @override
   Widget build(BuildContext context) {
@@ -404,25 +405,47 @@ class PopularDishesStrip extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Flexible(
-                            child: Text(
-                              '\$${dish.price.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                color: dishColor,
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '\$${dish.price.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: dishColor,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 2.h),
+                                Text(
+                                  '⭐ ${dish.rating}',
+                                  style: TextStyle(
+                                    color: AppColors.accentGold,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            '⭐ ${dish.rating}',
-                            style: TextStyle(
-                              color: AppColors.accentGold,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
+                          InkWell(
+                            onTap: () => onAddTap?.call(dish),
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Container(
+                              width: 30.w,
+                              height: 30.h,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 18.sp,
+                              ),
                             ),
                           ),
                         ],
@@ -440,9 +463,10 @@ class PopularDishesStrip extends StatelessWidget {
 }
 
 class RecommendedDishesList extends StatelessWidget {
-  const RecommendedDishesList({super.key, required this.items});
+  const RecommendedDishesList({super.key, required this.items, this.onAddTap});
 
   final List<ProductModel> items;
+  final ValueChanged<ProductModel>? onAddTap;
 
   @override
   Widget build(BuildContext context) {
@@ -518,15 +542,19 @@ class RecommendedDishesList extends StatelessWidget {
                     SizedBox(height: 6.h),
                     Row(
                       children: [
-                        Text(
-                          '\$${item.price.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            color: itemColor,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            '\$${item.price.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: itemColor,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Spacer(),
+                        SizedBox(width: 6.w),
                         Text(
                           '⭐ ${item.rating}',
                           style: TextStyle(
@@ -534,20 +562,28 @@ class RecommendedDishesList extends StatelessWidget {
                             fontSize: 12.sp,
                           ),
                         ),
+                        SizedBox(width: 8.w),
+                        InkWell(
+                          onTap: () => onAddTap?.call(item),
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: Container(
+                            width: 28.w,
+                            height: 28.h,
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 17.sp,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Container(
-                width: 36.w,
-                height: 36.h,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(Icons.add, color: Colors.white, size: 20.sp),
               ),
             ],
           ),

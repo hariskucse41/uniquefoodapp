@@ -15,10 +15,12 @@ class MenuPage extends StatefulWidget {
   const MenuPage({
     super.key,
     this.selectedCategoryId,
+    this.selectedProductId,
     this.selectionVersion = 0,
   });
 
   final int? selectedCategoryId;
+  final int? selectedProductId;
   final int selectionVersion;
 
   @override
@@ -31,12 +33,14 @@ class _MenuPageState extends State<MenuPage>
   List<CategoryModel> _categories = [];
   bool _initialized = false;
   int? _pendingCategoryId;
+  int? _pendingProductId;
   final Map<int, int> _cartQuantities = {};
 
   @override
   void initState() {
     super.initState();
     _pendingCategoryId = widget.selectedCategoryId;
+    _pendingProductId = widget.selectedProductId;
     _loadSavedCart();
   }
 
@@ -46,6 +50,7 @@ class _MenuPageState extends State<MenuPage>
 
     if (oldWidget.selectionVersion != widget.selectionVersion) {
       _pendingCategoryId = widget.selectedCategoryId;
+      _pendingProductId = widget.selectedProductId;
       _jumpToPendingCategory();
     }
   }
@@ -83,6 +88,35 @@ class _MenuPageState extends State<MenuPage>
     }
 
     _tabController!.animateTo(selectedIndex);
+  }
+
+  void _applyPendingProduct(List<ProductModel> products) {
+    if (_pendingProductId == null) {
+      return;
+    }
+
+    final productId = _pendingProductId;
+    _pendingProductId = null;
+
+    ProductModel? selectedProduct;
+    for (final product in products) {
+      if (product.id == productId) {
+        selectedProduct = product;
+        break;
+      }
+    }
+
+    if (selectedProduct == null) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _addToCart(selectedProduct!);
+      _openCartSheet(products);
+    });
   }
 
   Future<void> _loadSavedCart() async {
@@ -337,6 +371,50 @@ class _MenuPageState extends State<MenuPage>
                                         children: [
                                           Row(
                                             children: [
+                                              Container(
+                                                width: 52.w,
+                                                height: 52.h,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        10.r,
+                                                      ),
+                                                  color: AppColors.surfaceLight,
+                                                ),
+                                                clipBehavior: Clip.antiAlias,
+                                                child:
+                                                    product.imageUrl != null &&
+                                                        product
+                                                            .imageUrl!
+                                                            .isNotEmpty
+                                                    ? Image.network(
+                                                        product.imageUrl!,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder:
+                                                            (
+                                                              context,
+                                                              error,
+                                                              stackTrace,
+                                                            ) => Icon(
+                                                              HomeUiMapper.iconFromCategoryId(
+                                                                product
+                                                                    .categoryId,
+                                                                _categories,
+                                                              ),
+                                                              color: AppColors
+                                                                  .primaryStart,
+                                                            ),
+                                                      )
+                                                    : Icon(
+                                                        HomeUiMapper.iconFromCategoryId(
+                                                          product.categoryId,
+                                                          _categories,
+                                                        ),
+                                                        color: AppColors
+                                                            .primaryStart,
+                                                      ),
+                                              ),
+                                              SizedBox(width: 10.w),
                                               Expanded(
                                                 child: Text(
                                                   product.name,
@@ -346,6 +424,9 @@ class _MenuPageState extends State<MenuPage>
                                                     fontSize: 14.sp,
                                                     fontWeight: FontWeight.w600,
                                                   ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               IconButton(
@@ -531,6 +612,7 @@ class _MenuPageState extends State<MenuPage>
 
         if (state is HomeLoaded) {
           _initTabs(state.categories);
+          _applyPendingProduct(state.products);
 
           return Stack(
             children: [
@@ -707,10 +789,7 @@ class _MenuPageState extends State<MenuPage>
         );
 
         return GestureDetector(
-          onTap: () {
-            _addToCart(item);
-            _openCartSheet(products);
-          },
+          onTap: null,
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.surfaceOverlay,
